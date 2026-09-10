@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy-dark: #000112;
+  --color-navy-light: #00011e;
+  --font-comic: "Comic Helvetic", sans-serif;
+  --font-comic-serif: "Comic Serif Pro", serif;
+}
+
+@font-face {
+  font-family: "Comic Helvetic";
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("/fonts/ComicHelvetic_Light.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "Comic Helvetic";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/ComicHelvetic_Medium.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "Comic Helvetic";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/ComicHelvetic_Heavy.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "Comic Serif Pro";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/HVD_Comic_Serif_Pro.otf") format("opentype");
+}
