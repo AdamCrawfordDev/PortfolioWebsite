@@ -1,12 +1,7 @@
-import Container from './Container'
+import Container from "./Container"
 
 function App() {
-  return (
-    <>
-
-      <Container />
-    </>
-  )
+  return <Container />
 }
 
 export default App

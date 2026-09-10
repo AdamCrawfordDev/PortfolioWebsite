@@ -1,8 +1,13 @@
 @import "tailwindcss";
 
+html {
+  overflow-y: scroll;
+}
+
 @theme {
   --color-navy-dark: #000112;
   --color-navy-light: #00011e;
+
   --font-comic: "Comic Helvetic", sans-serif;
   --font-comic-serif: "Comic Serif Pro", serif;
 }
@@ -38,3 +43,101 @@
   font-display: swap;
   src: url("/fonts/HVD_Comic_Serif_Pro.otf") format("opentype");
 }
+
+@keyframes panelSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes panelSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+}
+
+.panel-slide-ready {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.panel-slide-in {
+  animation: panelSlideIn 320ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.panel-slide-out {
+  animation: panelSlideOut 220ms cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+/* Existing panel animations stay above this */
+
+
+/* ========================================
+   DIRECTORY TRANSITIONS
+   ======================================== */
+
+.directory-visible {
+  opacity: 1;
+  transform: translateX(0);
+
+  transition:
+    opacity 260ms ease-out,
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+
+/* ----------------------------------------
+   ENTER DIRECTORY
+
+   Current level exits left.
+   New level enters from right.
+   ---------------------------------------- */
+
+.directory-out-forward {
+  opacity: 0;
+  transform: translateX(-24px);
+
+  transition:
+    opacity 180ms ease-in,
+    transform 180ms ease-in;
+}
+
+.directory-ready-forward {
+  opacity: 0;
+  transform: translateX(24px);
+}
+
+
+/* ----------------------------------------
+   GO BACK
+
+   Current level exits right.
+   Parent level enters from left.
+   ---------------------------------------- */
+
+.directory-out-back {
+  opacity: 0;
+  transform: translateX(24px);
+
+  transition:
+    opacity 180ms ease-in,
+    transform 180ms ease-in;
+}
+
+.directory-ready-back {
+  opacity: 0;
+  transform: translateX(-24px);
+}
+
