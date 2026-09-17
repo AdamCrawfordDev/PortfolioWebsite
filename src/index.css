@@ -1,143 +1,401 @@
 @import "tailwindcss";
 
+
 html {
+
   overflow-y: scroll;
+
 }
 
+
 @theme {
+
   --color-navy-dark: #000112;
+
   --color-navy-light: #00011e;
 
   --font-comic: "Comic Helvetic", sans-serif;
+
   --font-comic-serif: "Comic Serif Pro", serif;
+
 }
-
-@font-face {
-  font-family: "Comic Helvetic";
-  font-style: normal;
-  font-weight: 300;
-  font-display: swap;
-  src: url("/fonts/ComicHelvetic_Light.otf") format("opentype");
-}
-
-@font-face {
-  font-family: "Comic Helvetic";
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url("/fonts/ComicHelvetic_Medium.otf") format("opentype");
-}
-
-@font-face {
-  font-family: "Comic Helvetic";
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url("/fonts/ComicHelvetic_Heavy.otf") format("opentype");
-}
-
-@font-face {
-  font-family: "Comic Serif Pro";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/HVD_Comic_Serif_Pro.otf") format("opentype");
-}
-
-@keyframes panelSlideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes panelSlideOut {
-  from {
-    opacity: 1;
-    transform: translateX(0);
-  }
-
-  to {
-    opacity: 0;
-    transform: translateX(-14px);
-  }
-}
-
-.panel-slide-ready {
-  opacity: 0;
-  transform: translateX(-20px);
-}
-
-.panel-slide-in {
-  animation: panelSlideIn 320ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-.panel-slide-out {
-  animation: panelSlideOut 220ms cubic-bezier(0.4, 0, 1, 1) forwards;
-}
-
-/* Existing panel animations stay above this */
 
 
 /* ========================================
+
+   FONTS
+
+   ======================================== */
+
+@font-face {
+
+  font-family: "Comic Helvetic";
+
+  font-style: normal;
+
+  font-weight: 300;
+
+  font-display: swap;
+
+  src: url("/fonts/ComicHelvetic_Light.otf") format("opentype");
+
+}
+
+
+@font-face {
+
+  font-family: "Comic Helvetic";
+
+  font-style: normal;
+
+  font-weight: 500;
+
+  font-display: swap;
+
+  src: url("/fonts/ComicHelvetic_Medium.otf") format("opentype");
+
+}
+
+
+@font-face {
+
+  font-family: "Comic Helvetic";
+
+  font-style: normal;
+
+  font-weight: 700;
+
+  font-display: swap;
+
+  src: url("/fonts/ComicHelvetic_Heavy.otf") format("opentype");
+
+}
+
+
+@font-face {
+
+  font-family: "Comic Serif Pro";
+
+  font-style: normal;
+
+  font-weight: 400;
+
+  font-display: swap;
+
+  src: url("/fonts/HVD_Comic_Serif_Pro.otf") format("opentype");
+
+}
+
+
+/* ========================================
+
+   PANEL TRANSITIONS
+
+   ======================================== */
+
+@keyframes panelSlideIn {
+
+  from {
+
+    opacity: 0;
+
+    transform: translateX(-20px);
+
+  }
+
+  to {
+
+    opacity: 1;
+
+    transform: translateX(0);
+
+  }
+
+}
+
+
+@keyframes panelSlideOut {
+
+  from {
+
+    opacity: 1;
+
+    transform: translateX(0);
+
+  }
+
+  to {
+
+    opacity: 0;
+
+    transform: translateX(-14px);
+
+  }
+
+}
+
+
+.panel-slide-ready {
+
+  opacity: 0;
+
+  transform: translateX(-20px);
+
+}
+
+
+.panel-slide-in {
+
+  animation:
+    panelSlideIn
+    320ms
+    cubic-bezier(0.22, 1, 0.36, 1)
+    forwards;
+
+}
+
+
+.panel-slide-out {
+
+  animation:
+    panelSlideOut
+    220ms
+    cubic-bezier(0.4, 0, 1, 1)
+    forwards;
+
+}
+
+
+/* ========================================
+
    DIRECTORY TRANSITIONS
+
    ======================================== */
 
 .directory-visible {
+
   opacity: 1;
+
   transform: translateX(0);
 
   transition:
     opacity 260ms ease-out,
     transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+
 }
 
 
 /* ----------------------------------------
+
    ENTER DIRECTORY
 
    Current level exits left.
+
    New level enters from right.
+
    ---------------------------------------- */
 
 .directory-out-forward {
+
   opacity: 0;
+
   transform: translateX(-24px);
 
   transition:
     opacity 180ms ease-in,
     transform 180ms ease-in;
+
 }
 
+
 .directory-ready-forward {
+
   opacity: 0;
+
   transform: translateX(24px);
+
 }
 
 
 /* ----------------------------------------
+
    GO BACK
 
    Current level exits right.
+
    Parent level enters from left.
+
    ---------------------------------------- */
 
 .directory-out-back {
+
   opacity: 0;
+
   transform: translateX(24px);
 
   transition:
     opacity 180ms ease-in,
     transform 180ms ease-in;
+
 }
+
 
 .directory-ready-back {
+
   opacity: 0;
+
   transform: translateX(-24px);
+
 }
 
+
+/* ========================================
+
+   APP / MINIGAME TRANSITIONS
+
+   ======================================== */
+
+/*
+ * Shared transition behaviour for the
+ * portfolio <-> minigame swap.
+ */
+
+.app-view-transition {
+
+  will-change:
+    opacity,
+    transform;
+
+  transition:
+    opacity 220ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+
+}
+
+
+/* ----------------------------------------
+
+   NORMAL RESTING POSITION
+
+   ---------------------------------------- */
+
+.app-view-visible {
+
+  opacity: 1;
+
+  transform: translateX(0);
+
+}
+
+
+/* ----------------------------------------
+
+   OPEN MINIGAME
+
+   Minigame list exits left.
+
+   ---------------------------------------- */
+
+.app-view-out-forward {
+
+  opacity: 0;
+
+  transform: translateX(-18px);
+
+}
+
+
+/*
+ * The newly mounted game starts slightly
+ * to the right.
+ */
+
+.app-view-ready-forward {
+
+  opacity: 0;
+
+  transform: translateX(18px);
+
+}
+
+
+/* ----------------------------------------
+
+   CLOSE MINIGAME
+
+   Game exits right.
+
+   ---------------------------------------- */
+
+.app-view-out-back {
+
+  opacity: 0;
+
+  transform: translateX(18px);
+
+}
+
+
+/*
+ * Restored Minigames directory starts
+ * slightly to the left.
+ */
+
+.app-view-ready-back {
+
+  opacity: 0;
+
+  transform: translateX(-18px);
+
+}
+
+
+/* ========================================
+
+   REDUCED MOTION
+
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .panel-slide-in,
+  .panel-slide-out {
+
+    animation: none;
+
+  }
+
+
+  .directory-visible,
+  .directory-out-forward,
+  .directory-ready-forward,
+  .directory-out-back,
+  .directory-ready-back,
+  .app-view-transition {
+
+    transition: none;
+
+  }
+
+
+  .panel-slide-ready,
+  .panel-slide-in,
+  .panel-slide-out,
+  .directory-visible,
+  .directory-out-forward,
+  .directory-ready-forward,
+  .directory-out-back,
+  .directory-ready-back,
+  .app-view-visible,
+  .app-view-out-forward,
+  .app-view-ready-forward,
+  .app-view-out-back,
+  .app-view-ready-back {
+
+    opacity: 1;
+
+    transform: none;
+
+  }
+
+}

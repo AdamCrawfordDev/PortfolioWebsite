@@ -1,4 +1,3 @@
-```tsx
 export type NavigationItem = {
   id: string
   name: string
@@ -17,4 +16,3 @@ export type NavigationItem = {
 
   children?: NavigationItem[]
 }
-```

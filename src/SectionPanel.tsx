@@ -1,19 +1,47 @@
-import type { ReactNode } from "react"
+import type {
+  ReactNode,
+} from "react"
 
-import type { NavigationItem } from "./types/navigation"
+import {
+  isMiniGame,
+} from "./types/minigames"
+
+import type {
+  MiniGameId,
+} from "./types/minigames"
+
+import type {
+  NavigationItem,
+} from "./types/navigation"
+
 
 type SectionPanelProps = {
   item: NavigationItem
+
+  onLaunchMiniGame:
+    (game: MiniGameId) => void
 }
 
-function SectionPanel({ item }: SectionPanelProps) {
+
+function SectionPanel({
+  item,
+  onLaunchMiniGame,
+}: SectionPanelProps) {
+
   // ========================================
   // ABOUT
   // ========================================
 
-  if (item.id === "about") {
+  if (
+    item.id ===
+    "about"
+  ) {
     return (
-      <PanelShell path={item.path}>
+      <PanelShell
+        path={
+          item.path
+        }
+      >
         <h2 className="font-comic-serif text-3xl text-white">
           Hi, I'm Adam.
         </h2>
@@ -32,6 +60,7 @@ function SectionPanel({ item }: SectionPanelProps) {
 
         <div className="mt-6 border-t border-dashed border-white/10 pt-4">
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-white/30">
+
             <span>
               status:{" "}
               <span className="text-white/55">
@@ -52,19 +81,28 @@ function SectionPanel({ item }: SectionPanelProps) {
                 London, UK
               </span>
             </span>
+
           </div>
         </div>
       </PanelShell>
     )
   }
 
+
   // ========================================
   // CONTACT
   // ========================================
 
-  if (item.id === "contact") {
+  if (
+    item.id ===
+    "contact"
+  ) {
     return (
-      <PanelShell path={item.path}>
+      <PanelShell
+        path={
+          item.path
+        }
+      >
         <h2 className="font-comic-serif text-3xl text-white">
           Say hello.
         </h2>
@@ -75,6 +113,7 @@ function SectionPanel({ item }: SectionPanelProps) {
         </p>
 
         <div className="mt-6 space-y-3">
+
           <ContactLink
             label="email"
             value="adam@crawfordclan.org.uk"
@@ -92,11 +131,13 @@ function SectionPanel({ item }: SectionPanelProps) {
             value="AdamCrawfordDev"
             href="https://github.com/AdamCrawfordDev"
           />
+
         </div>
 
         <div className="mt-6 border-t border-dashed border-white/10 pt-4">
           <span className="font-comic text-xs text-white/25">
             status:{" "}
+
             <span className="text-white/50">
               open to opportunities
             </span>
@@ -106,13 +147,21 @@ function SectionPanel({ item }: SectionPanelProps) {
     )
   }
 
+
   // ========================================
   // DIRECTORY PREVIEW
   // ========================================
 
-  if (item.children?.length) {
+  if (
+    item.children
+      ?.length
+  ) {
     return (
-      <PanelShell path={item.path}>
+      <PanelShell
+        path={
+          item.path
+        }
+      >
         <h2 className="font-comic-serif text-3xl text-white">
           {item.name}
         </h2>
@@ -125,13 +174,16 @@ function SectionPanel({ item }: SectionPanelProps) {
 
         <div className="mt-5 font-comic text-xs text-white/30">
           {item.children.length}{" "}
-          {item.children.length === 1
+
+          {item.children.length ===
+          1
             ? "item"
             : "items"}
         </div>
 
         <div className="mt-6 border-t border-dashed border-white/10 pt-4">
           <div className="flex items-center gap-2 font-comic text-xs">
+
             <span className="text-white/25">
               ENTER
             </span>
@@ -139,14 +191,53 @@ function SectionPanel({ item }: SectionPanelProps) {
             <span className="text-white/50">
               &gt; open directory
             </span>
+
           </div>
         </div>
       </PanelShell>
     )
   }
 
+
   // ========================================
-  // PROJECT / EXPERIENCE / MINIGAME
+  // MINIGAME EXECUTABLE
+  // ========================================
+
+  if (
+    isMiniGame(
+      item.id
+    )
+  ) {
+    /*
+     * NavigationItem.id is normally just
+     * `string`, but isMiniGame() proves that
+     * this particular value is a MiniGameId.
+     *
+     * Capture it here so TypeScript keeps
+     * the narrowed type inside the callback.
+     */
+
+    const gameId: MiniGameId =
+      item.id
+
+
+    return (
+      <MiniGamePanel
+        item={
+          item
+        }
+        onRun={() =>
+          onLaunchMiniGame(
+            gameId
+          )
+        }
+      />
+    )
+  }
+
+
+  // ========================================
+  // PROJECT / EXPERIENCE
   // ========================================
 
   if (
@@ -155,12 +246,18 @@ function SectionPanel({ item }: SectionPanelProps) {
     item.highlights
   ) {
     return (
-      <PanelShell path={item.path}>
+      <PanelShell
+        path={
+          item.path
+        }
+      >
         <h2 className="font-comic-serif text-3xl text-white">
-          {item.name === "Freelance IT"
+          {item.name ===
+          "Freelance IT"
             ? "Freelance IT Consultant"
             : item.name}
         </h2>
+
 
         {item.subtitle && (
           <p className="mt-1 text-sm text-white/45">
@@ -168,15 +265,19 @@ function SectionPanel({ item }: SectionPanelProps) {
           </p>
         )}
 
-        {(item.date || item.location) && (
+
+        {(item.date ||
+          item.location) && (
           <div className="mt-2 flex flex-wrap gap-x-3 text-xs text-white/30">
+
             {item.date && (
               <span>
                 {item.date}
               </span>
             )}
 
-            {item.date && item.location && (
+            {item.date &&
+              item.location && (
               <span>
                 ·
               </span>
@@ -187,8 +288,10 @@ function SectionPanel({ item }: SectionPanelProps) {
                 {item.location}
               </span>
             )}
+
           </div>
         )}
+
 
         {item.description && (
           <p className="mt-4 max-w-xl text-sm leading-7 text-white/55">
@@ -196,28 +299,47 @@ function SectionPanel({ item }: SectionPanelProps) {
           </p>
         )}
 
+
         {item.highlights && (
           <div className="mt-5 space-y-3">
-            {item.highlights.map((highlight) => (
-              <div
-                key={highlight}
-                className="flex gap-3 text-sm leading-6 text-white/45"
-              >
-                <span className="shrink-0 text-white/25">
-                  &gt;
-                </span>
 
-                <p>
-                  {highlight}
-                </p>
-              </div>
-            ))}
+            {item.highlights.map(
+              (
+                highlight
+              ) => (
+                <div
+                  key={
+                    highlight
+                  }
+                  className="
+                    flex
+                    gap-3
+                    text-sm
+                    leading-6
+                    text-white/45
+                  "
+                >
+                  <span className="shrink-0 text-white/25">
+                    &gt;
+                  </span>
+
+                  <p>
+                    {highlight}
+                  </p>
+                </div>
+              )
+            )}
+
           </div>
         )}
 
-        {(item.stack || item.languages) && (
+
+        {(item.stack ||
+          item.languages) && (
           <div className="mt-6 border-t border-dashed border-white/10 pt-4">
+
             <div className="space-y-2 text-xs">
+
               {item.stack && (
                 <div>
                   <span className="text-white/25">
@@ -225,10 +347,13 @@ function SectionPanel({ item }: SectionPanelProps) {
                   </span>
 
                   <span className="text-white/55">
-                    {item.stack.join(" · ")}
+                    {item.stack.join(
+                      " · "
+                    )}
                   </span>
                 </div>
               )}
+
 
               {item.languages && (
                 <div>
@@ -237,23 +362,32 @@ function SectionPanel({ item }: SectionPanelProps) {
                   </span>
 
                   <span className="text-white/55">
-                    {item.languages.join(" · ")}
+                    {item.languages.join(
+                      " · "
+                    )}
                   </span>
                 </div>
               )}
+
             </div>
           </div>
         )}
+
       </PanelShell>
     )
   }
+
 
   // ========================================
   // FALLBACK
   // ========================================
 
   return (
-    <PanelShell path={item.path}>
+    <PanelShell
+      path={
+        item.path
+      }
+    >
       <h2 className="font-comic-serif text-3xl text-white">
         {item.name}
       </h2>
@@ -267,20 +401,88 @@ function SectionPanel({ item }: SectionPanelProps) {
 
 
 // ========================================
+// MINIGAME PANEL
+// ========================================
+
+type MiniGamePanelProps = {
+  item: NavigationItem
+
+  onRun: () => void
+}
+
+
+function MiniGamePanel({
+  item,
+}: MiniGamePanelProps) {
+
+  return (
+    <PanelShell
+      path={
+        item.path
+      }
+    >
+      {/* ======================================== */}
+      {/* GAME NAME */}
+      {/* ======================================== */}
+
+      <div
+        className="
+          font-comic
+          text-[10px]
+          tracking-[0.18em]
+          text-emerald-200/45
+        "
+      >
+        EXECUTABLE
+      </div>
+
+      <h2
+        className="
+          mt-1
+          font-comic-serif
+          text-3xl
+          leading-none
+          text-white
+        "
+      >
+        {item.name}
+      </h2>
+
+
+      {/* ======================================== */}
+      {/* DESCRIPTION */}
+      {/* ======================================== */}
+
+      {item.description && (
+        <p className="mt-4 max-w-xl text-sm leading-7 text-white/55">
+          {item.description}
+        </p>
+      )}
+
+    </PanelShell>
+  )
+}
+
+
+// ========================================
 // PANEL SHELL
 // ========================================
 
 type PanelShellProps = {
   path: string
+
   children: ReactNode
 }
+
 
 function PanelShell({
   path,
   children,
 }: PanelShellProps) {
+
   return (
     <div className="relative pl-6 font-comic">
+
       <div
         className="
           absolute
@@ -297,6 +499,7 @@ function PanelShell({
       </div>
 
       {children}
+
     </div>
   )
 }
@@ -308,22 +511,40 @@ function PanelShell({
 
 type ContactLinkProps = {
   label: string
+
   value: string
+
   href: string
 }
+
 
 function ContactLink({
   label,
   value,
   href,
 }: ContactLinkProps) {
-  const external = href.startsWith("http")
+
+  const external =
+    href.startsWith(
+      "http"
+    )
+
 
   return (
     <a
-      href={href}
-      target={external ? "_blank" : undefined}
-      rel={external ? "noreferrer" : undefined}
+      href={
+        href
+      }
+      target={
+        external
+          ? "_blank"
+          : undefined
+      }
+      rel={
+        external
+          ? "noreferrer"
+          : undefined
+      }
       className="
         group
         flex
@@ -364,8 +585,10 @@ function ContactLink({
       >
         {value}
       </span>
+
     </a>
   )
 }
+
 
 export default SectionPanel

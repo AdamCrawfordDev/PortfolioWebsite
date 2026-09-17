@@ -1,10 +1,17 @@
-import type { NavigationItem } from "../types/navigation"
+import type {
+  NavigationItem,
+} from "../types/navigation"
 
 import underline1 from "../assets/underlines/underline-1.svg"
 import underline2 from "../assets/underlines/underline-2.svg"
 import underline3 from "../assets/underlines/underline-3.svg"
 import underline4 from "../assets/underlines/underline-4.svg"
 import underline5 from "../assets/underlines/underline-5.svg"
+
+
+// ========================================
+// UNDERLINES
+// ========================================
 
 export const underlines = [
   underline1,
@@ -14,12 +21,28 @@ export const underlines = [
   underline5,
 ]
 
-export const navigation: NavigationItem[] = [
+
+// ========================================
+// NAVIGATION
+// ========================================
+
+export const navigation:
+  NavigationItem[] = [
+
+  // ========================================
+  // ABOUT
+  // ========================================
+
   {
     id: "about",
     name: "About",
     path: "/about",
   },
+
+
+  // ========================================
+  // PROJECTS
+  // ========================================
 
   {
     id: "projects",
@@ -115,6 +138,11 @@ export const navigation: NavigationItem[] = [
     ],
   },
 
+
+  // ========================================
+  // EXPERIENCE
+  // ========================================
+
   {
     id: "experience",
     name: "Experience",
@@ -132,8 +160,11 @@ export const navigation: NavigationItem[] = [
         subtitle:
           "Consolidation Consultancy Limited",
 
-        date: "2025",
-        location: "London, UK",
+        date:
+          "2025",
+
+        location:
+          "London, UK",
 
         description:
           "Designed and deployed a Linux-based file synchronisation solution across multiple client workspaces.",
@@ -159,8 +190,11 @@ export const navigation: NavigationItem[] = [
         subtitle:
           "Royal Holloway Students' Union",
 
-        date: "2024 – 2026",
-        location: "Egham, UK",
+        date:
+          "2024 – 2026",
+
+        location:
+          "Egham, UK",
 
         description:
           "Promoted from Bar Team Member to Bar Supervisor, taking responsibility for large teams during busy club nights and events.",
@@ -174,6 +208,11 @@ export const navigation: NavigationItem[] = [
     ],
   },
 
+
+  // ========================================
+  // MINIGAMES
+  // ========================================
+
   {
     id: "minigames",
     name: "Minigames",
@@ -183,34 +222,52 @@ export const navigation: NavigationItem[] = [
       "Small distractions built for absolutely no good reason.",
 
     children: [
-      {
-        id: "bug-squasher",
-        name: "Bug Squasher",
-        path: "/minigames/bug-squasher",
 
-        description:
-          "Bugs are escaping into production. Squash as many as you can before the deploy finishes.",
-
-        subtitle:
-          "tiny game · coming soon",
-      },
+      // ========================================
+      // CI/CD DEFENSE
+      // ========================================
 
       {
-        id: "packet-panic",
-        name: "Packet Panic",
-        path: "/minigames/packet-panic",
+        id: "ci-cd-defense",
+        name: "CI/CD Defense",
+        path:
+          "/minigames/ci-cd-defense",
 
         description:
-          "Keep the packets moving, dodge the corrupted ones and try not to bring the entire network down.",
+          "Defend the CI/CD pipeline from bugs as they move through each stage towards production.",
 
         subtitle:
-          "tiny game · coming soon",
+          "interactive game",
       },
+
+
+      // ========================================
+      // PACKET POLICE
+      // ========================================
+
+      {
+        id: "packet-police",
+        name: "Packet Police",
+        path:
+          "/minigames/packet-police",
+
+        description:
+          "Patrol the network and intercept corrupted packets before they crash a protected service.",
+
+        subtitle:
+          "interactive game",
+      },
+
+
+      // ========================================
+      // MEMORY LEAK
+      // ========================================
 
       {
         id: "memory-leak",
         name: "Memory Leak",
-        path: "/minigames/memory-leak",
+        path:
+          "/minigames/memory-leak",
 
         description:
           "Your memory is disappearing one block at a time. Remember the pattern before everything gets garbage collected.",
@@ -220,6 +277,11 @@ export const navigation: NavigationItem[] = [
       },
     ],
   },
+
+
+  // ========================================
+  // CONTACT
+  // ========================================
 
   {
     id: "contact",
