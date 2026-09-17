@@ -7,6 +7,11 @@ import {
 import PrimaryListItem from "./PrimaryListItem"
 import SectionPanel from "./SectionPanel"
 
+import PlanItProject from "./features/projects/projects/planit/PlanItProject"
+import SelfDrivingCarProject from "./features/projects/projects/car-rl/SelfDrivingCarProject"
+import RestaurantManagementProject from "./features/projects/projects/restaurant-management/RestaurantManagementProject"
+import SpotifyRekordboxProject from "./features/projects/projects/spotify-rekordbox/SpotifyRekordboxProject"
+
 import {
   navigation,
   underlines,
@@ -25,9 +30,18 @@ import type {
 } from "./types/minigames"
 
 
+// ========================================
+// CONFIG
+// ========================================
+
 const PANEL_OUT_DURATION = 220
 const DIRECTORY_OUT_DURATION = 180
+const PROJECT_OUT_DURATION = 200
 
+
+// ========================================
+// TRANSITION TYPES
+// ========================================
 
 type PanelPhase =
   | "visible"
@@ -42,6 +56,18 @@ type DirectoryPhase =
   | "out-back"
   | "ready-back"
 
+
+type ProjectPhase =
+  | "visible"
+  | "out-forward"
+  | "ready-forward"
+  | "out-back"
+  | "ready-back"
+
+
+// ========================================
+// PROPS
+// ========================================
 
 type ListProps = {
   onLaunchMiniGame:
@@ -129,6 +155,29 @@ function getInitialSelectedIndex(
 
 
 // ========================================
+// PROJECTS
+// ========================================
+
+type ProjectId =
+  | "planit"
+  | "car-rl"
+  | "restaurant"
+  | "rekordbox"
+
+
+function isProjectId(
+  id: string
+): id is ProjectId {
+  return (
+    id === "planit" ||
+    id === "car-rl" ||
+    id === "restaurant" ||
+    id === "rekordbox"
+  )
+}
+
+
+// ========================================
 // COMPONENT
 // ========================================
 
@@ -142,6 +191,10 @@ function List({
       returnToMiniGame
     )
 
+
+  // ========================================
+  // NAVIGATION STATE
+  // ========================================
 
   const [
     navigationStack,
@@ -173,6 +226,32 @@ function List({
     )
 
 
+  // ========================================
+  // PROJECT STATE
+  // ========================================
+
+  const [
+    activeProject,
+    setActiveProject,
+  ] =
+    useState<ProjectId | null>(
+      null
+    )
+
+
+  const [
+    projectPhase,
+    setProjectPhase,
+  ] =
+    useState<ProjectPhase>(
+      "visible"
+    )
+
+
+  // ========================================
+  // PANEL STATE
+  // ========================================
+
   const [
     panelPhase,
     setPanelPhase,
@@ -182,6 +261,10 @@ function List({
     )
 
 
+  // ========================================
+  // DIRECTORY STATE
+  // ========================================
+
   const [
     directoryPhase,
     setDirectoryPhase,
@@ -190,6 +273,10 @@ function List({
       "visible"
     )
 
+
+  // ========================================
+  // ANIMATION REFS
+  // ========================================
 
   const timeoutRef =
     useRef<number | null>(
@@ -204,7 +291,7 @@ function List({
 
 
   // ========================================
-  // DIRECTORY STATE
+  // CURRENT DIRECTORY
   // ========================================
 
   const currentDirectory =
@@ -339,11 +426,164 @@ function List({
 
 
   // ========================================
-  // OPEN ITEM
+  // OPEN PROJECT
+  // ========================================
+
+  function openProject(
+    project: ProjectId
+  ) {
+    if (
+      projectPhase !==
+      "visible"
+    ) {
+      return
+    }
+
+
+    clearAnimationTimers()
+
+
+    /*
+     * The project directory leaves to
+     * the left first.
+     */
+
+    setProjectPhase(
+      "out-forward"
+    )
+
+
+    timeoutRef.current =
+      window.setTimeout(
+        () => {
+
+          /*
+           * The directory is now invisible,
+           * so swap in the README.
+           */
+
+          setActiveProject(
+            project
+          )
+
+
+          /*
+           * Start the README just outside
+           * the right-hand side.
+           */
+
+          setProjectPhase(
+            "ready-forward"
+          )
+
+
+          /*
+           * Give React/browser time to paint
+           * that starting position before
+           * animating it into view.
+           */
+
+          runNextFrame(() => {
+            setProjectPhase(
+              "visible"
+            )
+          })
+        },
+        PROJECT_OUT_DURATION
+      )
+  }
+
+
+  // ========================================
+  // CLOSE PROJECT
+  // ========================================
+
+  function closeProject() {
+    if (
+      !activeProject ||
+      projectPhase !==
+        "visible"
+    ) {
+      return
+    }
+
+
+    clearAnimationTimers()
+
+
+    /*
+     * README leaves to the right.
+     */
+
+    setProjectPhase(
+      "out-back"
+    )
+
+
+    timeoutRef.current =
+      window.setTimeout(
+        () => {
+
+          /*
+           * Once invisible, restore the
+           * Projects directory.
+           *
+           * selectedIndex is deliberately
+           * NOT changed, so the project the
+           * user just viewed stays selected.
+           */
+
+          setActiveProject(
+            null
+          )
+
+
+          /*
+           * Restored directory starts just
+           * outside the left-hand side.
+           */
+
+          setProjectPhase(
+            "ready-back"
+          )
+
+
+          runNextFrame(() => {
+            setProjectPhase(
+              "visible"
+            )
+          })
+        },
+        PROJECT_OUT_DURATION
+      )
+  }
+
+
+  // ========================================
+  // OPEN SELECTED ITEM
   // ========================================
 
   function openSelectedItem() {
     if (!selectedItem) {
+      return
+    }
+
+
+    // ========================================
+    // PROJECT README
+    // ========================================
+
+    if (
+      currentDirectory?.id ===
+        "projects" &&
+      isProjectId(
+        selectedItem.id
+      )
+    ) {
+      openProject(
+        selectedItem.id
+      )
+
       return
     }
 
@@ -399,6 +639,7 @@ function List({
           setSelectedIndex(
             0
           )
+
 
           setDisplayedIndex(
             0
@@ -555,6 +796,29 @@ function List({
       }
 
 
+      // ========================================
+      // PROJECT
+      // ========================================
+
+      if (
+        currentDirectory?.id ===
+          "projects" &&
+        isProjectId(
+          item.id
+        )
+      ) {
+        openProject(
+          item.id
+        )
+
+        return
+      }
+
+
+      // ========================================
+      // MINIGAME
+      // ========================================
+
       if (
         isMiniGame(
           item.id
@@ -567,6 +831,10 @@ function List({
         return
       }
 
+
+      // ========================================
+      // DIRECTORY
+      // ========================================
 
       if (
         item.children
@@ -594,6 +862,29 @@ function List({
     function handleKeyDown(
       event: KeyboardEvent
     ) {
+
+      // ========================================
+      // PROJECT README
+      // ========================================
+
+      if (activeProject) {
+        if (
+          event.key ===
+          "Escape"
+        ) {
+          event.preventDefault()
+
+          closeProject()
+        }
+
+        return
+      }
+
+
+      // ========================================
+      // MOVE DOWN
+      // ========================================
+
       if (
         event.key ===
         "ArrowDown"
@@ -618,6 +909,10 @@ function List({
       }
 
 
+      // ========================================
+      // MOVE UP
+      // ========================================
+
       if (
         event.key ===
         "ArrowUp"
@@ -641,6 +936,10 @@ function List({
       }
 
 
+      // ========================================
+      // OPEN
+      // ========================================
+
       if (
         event.key ===
         "Enter"
@@ -652,6 +951,10 @@ function List({
         return
       }
 
+
+      // ========================================
+      // BACK
+      // ========================================
 
       if (
         event.key ===
@@ -755,6 +1058,47 @@ function List({
 
 
   // ========================================
+  // PROJECT ANIMATION CLASS
+  // ========================================
+
+  function getProjectClassName() {
+    if (
+      projectPhase ===
+      "out-forward"
+    ) {
+      return "project-view-out-forward"
+    }
+
+
+    if (
+      projectPhase ===
+      "ready-forward"
+    ) {
+      return "project-view-ready-forward"
+    }
+
+
+    if (
+      projectPhase ===
+      "out-back"
+    ) {
+      return "project-view-out-back"
+    }
+
+
+    if (
+      projectPhase ===
+      "ready-back"
+    ) {
+      return "project-view-ready-back"
+    }
+
+
+    return "project-view-visible"
+  }
+
+
+  // ========================================
   // DIRECTORY PATH
   // ========================================
 
@@ -764,11 +1108,76 @@ function List({
 
 
   // ========================================
-  // RENDER
+  // ACTIVE PROJECT
   // ========================================
 
-  return (
-    <div className="w-full overflow-hidden">
+  function renderActiveProject() {
+    if (
+      activeProject ===
+      "planit"
+    ) {
+      return (
+        <PlanItProject
+          onBack={
+            closeProject
+          }
+        />
+      )
+    }
+
+
+    if (
+      activeProject ===
+      "car-rl"
+    ) {
+      return (
+        <SelfDrivingCarProject
+          onBack={
+            closeProject
+          }
+        />
+      )
+    }
+
+
+    if (
+      activeProject ===
+      "restaurant"
+    ) {
+      return (
+        <RestaurantManagementProject
+          onBack={
+            closeProject
+          }
+        />
+      )
+    }
+
+
+    if (
+      activeProject ===
+      "rekordbox"
+    ) {
+      return (
+        <SpotifyRekordboxProject
+          onBack={
+            closeProject
+          }
+        />
+      )
+    }
+
+
+    return null
+  }
+
+
+  // ========================================
+  // DIRECTORY VIEW
+  // ========================================
+
+  function renderDirectoryView() {
+    return (
       <div
         className={
           getDirectoryClassName()
@@ -780,6 +1189,7 @@ function List({
         {/* ======================================== */}
 
         <div className="mb-5 flex items-center gap-2 font-comic text-xs text-white/35 sm:text-sm">
+
           <span className="text-white/60">
             $
           </span>
@@ -793,6 +1203,7 @@ function List({
           <span className="animate-pulse text-white">
             _
           </span>
+
         </div>
 
 
@@ -815,6 +1226,7 @@ function List({
           {/* ======================================== */}
 
           <div className="min-w-0">
+
             <nav className="flex flex-col items-start">
 
               {currentItems.map(
@@ -846,6 +1258,14 @@ function List({
                         Boolean(
                           item.children
                             ?.length
+                        ) ||
+                        (
+                          currentDirectory
+                            ?.id ===
+                            "projects" &&
+                          isProjectId(
+                            item.id
+                          )
                         )
                       }
                       onClick={() =>
@@ -918,6 +1338,7 @@ function List({
               )}
 
             </div>
+
           </div>
 
 
@@ -946,6 +1367,7 @@ function List({
             )}
 
           </div>
+
         </div>
 
 
@@ -958,6 +1380,30 @@ function List({
         </div>
 
       </div>
+    )
+  }
+
+
+  // ========================================
+  // RENDER
+  // ========================================
+
+  return (
+    <div className="w-full overflow-hidden">
+
+      <div
+        className={`
+          project-view
+          ${getProjectClassName()}
+        `}
+      >
+
+        {activeProject
+          ? renderActiveProject()
+          : renderDirectoryView()}
+
+      </div>
+
     </div>
   )
 }

@@ -251,6 +251,109 @@ html {
 
 /* ========================================
 
+   PROJECT TRANSITIONS
+
+   ======================================== */
+
+.project-view {
+
+  will-change:
+    opacity,
+    transform;
+
+}
+
+
+/* ----------------------------------------
+
+   RESTING POSITION
+
+   ---------------------------------------- */
+
+.project-view-visible {
+
+  opacity: 1;
+
+  transform: translateX(0);
+
+  transition:
+    opacity 280ms ease-out,
+    transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+
+}
+
+
+/* ----------------------------------------
+
+   OPEN PROJECT
+
+   Project directory exits left.
+
+   ---------------------------------------- */
+
+.project-view-out-forward {
+
+  opacity: 0;
+
+  transform: translateX(-24px);
+
+  transition:
+    opacity 200ms ease-in,
+    transform 200ms ease-in;
+
+}
+
+
+/*
+ * Project starts just to the right
+ * before sliding into view.
+ */
+
+.project-view-ready-forward {
+
+  opacity: 0;
+
+  transform: translateX(28px);
+
+}
+
+
+/* ----------------------------------------
+
+   CLOSE PROJECT
+
+   README exits right.
+
+   ---------------------------------------- */
+
+.project-view-out-back {
+
+  opacity: 0;
+
+  transform: translateX(28px);
+
+  transition:
+    opacity 200ms ease-in,
+    transform 200ms ease-in;
+
+}
+
+
+/*
+ * Restored project directory begins
+ * slightly to the left.
+ */
+
+.project-view-ready-back {
+
+  opacity: 0;
+
+  transform: translateX(-24px);
+
+}
+
+/* ========================================
+
    APP / MINIGAME TRANSITIONS
 
    ======================================== */

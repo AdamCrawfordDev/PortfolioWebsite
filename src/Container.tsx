@@ -67,10 +67,78 @@ const GAME_INFO: Record<
 
 
 // ========================================
+// TIME FORMATTER
+// ========================================
+
+function formatPortfolioTime(
+  totalSeconds: number
+) {
+  const hours =
+    Math.floor(
+      totalSeconds / 3600
+    )
+
+  const minutes =
+    Math.floor(
+      (totalSeconds % 3600) /
+        60
+    )
+
+  const seconds =
+    totalSeconds % 60
+
+
+  const parts: string[] = []
+
+
+  if (hours > 0) {
+    parts.push(
+      `${hours} ${
+        hours === 1
+          ? "hour"
+          : "hours"
+      }`
+    )
+  }
+
+
+  if (
+    minutes > 0 ||
+    hours > 0
+  ) {
+    parts.push(
+      `${minutes} ${
+        minutes === 1
+          ? "minute"
+          : "minutes"
+      }`
+    )
+  }
+
+
+  parts.push(
+    `${seconds} ${
+      seconds === 1
+        ? "second"
+        : "seconds"
+    }`
+  )
+
+
+  return parts.join(" ")
+}
+
+
+// ========================================
 // COMPONENT
 // ========================================
 
 function Container() {
+
+  // ========================================
+  // APP STATE
+  // ========================================
+
   const [
     activeApp,
     setActiveApp,
@@ -97,6 +165,44 @@ function Container() {
       "visible"
     )
 
+
+  // ========================================
+  // HIRE ME EASTER EGG
+  // ========================================
+
+  const [
+    showHireMe,
+    setShowHireMe,
+  ] =
+    useState(false)
+
+
+  const [
+    hireMeTime,
+    setHireMeTime,
+  ] =
+    useState(0)
+
+
+  /*
+   * Store the time the portfolio was
+   * first mounted.
+   *
+   * Date.now() is used instead of
+   * incrementing state every second,
+   * so the rest of the portfolio does
+   * not rerender constantly.
+   */
+
+  const portfolioStartTime =
+    useRef(
+      Date.now()
+    )
+
+
+  // ========================================
+  // TRANSITION REFS
+  // ========================================
 
   const transitionTimeoutRef =
     useRef<number | null>(
@@ -140,9 +246,6 @@ function Container() {
    *
    * When closing a game we start collapsing
    * during the outgoing game fade.
-   *
-   * This makes the frame resize and content
-   * transition happen as one movement.
    */
 
   const expandingForward =
@@ -160,6 +263,7 @@ function Container() {
 
 
   const expanded =
+    showHireMe ||
     expandingForward ||
     (
       gameOpen &&
@@ -232,22 +336,10 @@ function Container() {
     clearTransitionTimers()
 
 
-    /*
-     * Remember the game so that when List
-     * mounts again after closing, it can
-     * return directly to Minigames with the
-     * previous game still selected.
-     */
-
     setLastMiniGame(
       game
     )
 
-
-    /*
-     * Fade the portfolio out while the
-     * outer frame expands.
-     */
 
     setAppPhase(
       "out-forward"
@@ -257,31 +349,15 @@ function Container() {
     transitionTimeoutRef.current =
       window.setTimeout(
         () => {
-          /*
-           * Portfolio is now invisible.
-           * Swap in the selected game.
-           */
-
           setActiveApp(
             game
           )
 
 
-          /*
-           * Position the game at its
-           * incoming starting point.
-           */
-
           setAppPhase(
             "ready-forward"
           )
 
-
-          /*
-           * Give the browser a frame to
-           * paint the starting position,
-           * then animate to visible.
-           */
 
           runNextFrame(
             () => {
@@ -313,11 +389,6 @@ function Container() {
     clearTransitionTimers()
 
 
-    /*
-     * Fade the game out while the frame
-     * begins collapsing.
-     */
-
     setAppPhase(
       "out-back"
     )
@@ -326,21 +397,10 @@ function Container() {
     transitionTimeoutRef.current =
       window.setTimeout(
         () => {
-          /*
-           * Game is now invisible.
-           * Return to the portfolio.
-           */
-
           setActiveApp(
             "portfolio"
           )
 
-
-          /*
-           * The restored Minigames
-           * directory starts slightly
-           * left of its final position.
-           */
 
           setAppPhase(
             "ready-back"
@@ -361,28 +421,90 @@ function Container() {
 
 
   // ========================================
-  // ESCAPE FROM RUNNING APP
+  // OPEN HIRE ME SCREEN
+  // ========================================
+
+  function openHireMe() {
+    const elapsedMilliseconds =
+      Date.now() -
+      portfolioStartTime.current
+
+
+    const elapsedSeconds =
+      Math.max(
+        1,
+        Math.floor(
+          elapsedMilliseconds /
+            1000
+        )
+      )
+
+
+    setHireMeTime(
+      elapsedSeconds
+    )
+
+
+    setShowHireMe(
+      true
+    )
+  }
+
+
+  // ========================================
+  // CLOSE HIRE ME SCREEN
+  // ========================================
+
+  function closeHireMe() {
+    setShowHireMe(
+      false
+    )
+  }
+
+
+  // ========================================
+  // ESCAPE
   // ========================================
 
   useEffect(() => {
-    if (!gameOpen) {
-      return
-    }
-
-
     function handleKeyDown(
       event: KeyboardEvent
     ) {
+
+      /*
+       * Hire Me screen gets first
+       * priority when open.
+       */
+
+      if (showHireMe) {
+        if (
+          event.key ===
+          "Escape"
+        ) {
+          event.preventDefault()
+
+          closeHireMe()
+        }
+
+        return
+      }
+
+
+      /*
+       * Otherwise Escape closes a
+       * running minigame.
+       */
+
       if (
+        !gameOpen ||
         event.key !==
-        "Escape"
+          "Escape"
       ) {
         return
       }
 
 
       event.preventDefault()
-
 
       closeActiveApp()
     }
@@ -401,6 +523,7 @@ function Container() {
       )
     }
   }, [
+    showHireMe,
     gameOpen,
     appPhase,
   ])
@@ -515,6 +638,7 @@ function Container() {
         md:pt-5
       "
     >
+
       <section
         className={`
           mx-auto
@@ -529,6 +653,7 @@ function Container() {
           }
         `}
       >
+
         <fieldset
           className="
             w-full
@@ -543,6 +668,7 @@ function Container() {
             md:pb-7
           "
         >
+
           <legend
             className="
               ml-2
@@ -551,6 +677,7 @@ function Container() {
               md:ml-4
             "
           >
+
             <div className="relative px-2">
 
               {/* ======================================== */}
@@ -615,6 +742,7 @@ function Container() {
               />
 
             </div>
+
           </legend>
 
 
@@ -629,7 +757,8 @@ function Container() {
               md:pt-6
 
               ${
-                gameOpen
+                gameOpen ||
+                showHireMe
                   ? ""
                   : "min-h-[365px] md:min-h-[380px]"
               }
@@ -640,164 +769,326 @@ function Container() {
             {/* WINDOW CONTROLS */}
             {/* ======================================== */}
 
-            <div
-              className="
-                absolute
-                right-0
-                top-0
-                z-10
-                font-comic
-                text-xs
-                text-white/25
-              "
-            >
-              [ _ ] [ □ ] [ × ]
-            </div>
+            {!showHireMe && (
+              <div
+                className="
+                  absolute
+                  right-0
+                  top-0
+                  z-10
+                  flex
+                  items-center
+                  gap-2
+                  font-comic
+                  text-xs
+                  text-white/25
+                "
+              >
+
+                <button
+                  type="button"
+                  onClick={
+                    openHireMe
+                  }
+                  aria-label="Minimise"
+                  className="
+                    transition-colors
+                    hover:text-white/70
+                  "
+                >
+                  [ _ ]
+                </button>
+
+
+                <button
+                  type="button"
+                  onClick={
+                    openHireMe
+                  }
+                  aria-label="Maximise"
+                  className="
+                    transition-colors
+                    hover:text-white/70
+                  "
+                >
+                  [ □ ]
+                </button>
+
+
+                <button
+                  type="button"
+                  onClick={
+                    openHireMe
+                  }
+                  aria-label="Close"
+                  className="
+                    transition-colors
+                    hover:text-red-400
+                  "
+                >
+                  [ × ]
+                </button>
+
+              </div>
+            )}
 
 
             {/* ======================================== */}
-            {/* TRANSITIONING APP CONTENT */}
+            {/* HIRE ME EASTER EGG */}
             {/* ======================================== */}
 
-            <div
-              className={`
-                app-view-transition
-                ${getAppTransitionClassName()}
-              `}
-            >
+            {showHireMe && (
+              <div
+                className="
+                  flex
+                  min-h-[520px]
+                  w-full
+                  flex-col
+                  items-center
+                  justify-center
+                  px-4
+                  py-12
+                  text-center
+                "
+              >
 
-              {/* ======================================== */}
-              {/* PORTFOLIO MODE */}
-              {/* ======================================== */}
+                <p
+                  className="
+                    max-w-xl
+                    font-comic
+                    text-sm
+                    leading-6
+                    text-white/45
 
-              {!gameOpen && (
-                <>
-                  <div className="mb-5 md:mb-7">
-
-                    
-
-
-                    <p
-                      className="
-                        mt-1
-                        font-comic
-                        text-sm
-                        text-white/60
-
-                        md:text-base
-                      "
-                    >
-                      Select a directory to continue.
-                    </p>
-
-                  </div>
-
-
-                  <div className="flex-1">
-
-                    <List
-                      onLaunchMiniGame={
-                        launchMiniGame
-                      }
-                      returnToMiniGame={
-                        lastMiniGame
-                      }
-                    />
-
-                  </div>
-                </>
-              )}
+                    md:text-base
+                  "
+                >
+                  you've spent{" "}
+                  <span className="text-white/70">
+                    {formatPortfolioTime(
+                      hireMeTime
+                    )}
+                  </span>{" "}
+                  on my portfolio, you may as well
+                </p>
 
 
-              {/* ======================================== */}
-              {/* MINIGAME MODE */}
-              {/* ======================================== */}
+                <div
+                  className="
+                    my-6
+                    font-comic-serif
+                    text-6xl
+                    leading-none
+                    text-red-500
 
-              {gameOpen &&
-                activeGameInfo && (
-                  <div className="min-w-0">
+                    sm:text-7xl
+                    md:text-8xl
+                  "
+                >
+                  HIRE ME
+                </div>
 
-                    {/* ======================================== */}
-                    {/* APP TITLE BAR */}
-                    {/* ======================================== */}
 
-                    <div
-                      className="
-                        mb-3
-                        flex
-                        items-center
-                        border-b
-                        border-dashed
-                        border-white/15
-                        pb-3
-                        font-comic
-                      "
-                    >
+                <button
+                  type="button"
+                  onClick={
+                    closeHireMe
+                  }
+                  className="
+                    group
+                    mt-3
+                    flex
+                    items-center
+                    gap-3
+                    font-comic
+                    text-xs
+                    text-white/35
+                    transition-colors
+                    hover:text-white/75
+                  "
+                >
 
-                      <button
-                        type="button"
-                        onClick={
-                          closeActiveApp
-                        }
+                  <span
+                    className="
+                      transition-transform
+                      duration-150
+                      group-hover:-translate-x-1
+                    "
+                  >
+                    &lt;
+                  </span>
+
+
+                  <span>
+                    go back
+                  </span>
+
+
+                  <span
+                    className="
+                      ml-1
+                      border
+                      border-white/15
+                      px-1.5
+                      py-0.5
+                      text-[9px]
+                      text-white/25
+                    "
+                  >
+                    ESC
+                  </span>
+
+                </button>
+
+              </div>
+            )}
+
+
+            {/* ======================================== */}
+            {/* NORMAL APP CONTENT */}
+            {/* ======================================== */}
+
+            {!showHireMe && (
+              <div
+                className={`
+                  app-view-transition
+                  ${getAppTransitionClassName()}
+                `}
+              >
+
+                {/* ======================================== */}
+                {/* PORTFOLIO MODE */}
+                {/* ======================================== */}
+
+                {!gameOpen && (
+                  <>
+
+                    <div className="mb-5 md:mb-7">
+
+                      <p
                         className="
-                          group
-                          flex
-                          items-center
-                          gap-2
-                          text-xs
-                          text-white/35
-                          transition-colors
-                          hover:text-white/75
+                          mt-1
+                          font-comic
+                          text-sm
+                          text-white/60
+
+                          md:text-base
                         "
                       >
-
-                        <span
-                          className="
-                            transition-transform
-                            duration-150
-                            group-hover:-translate-x-1
-                          "
-                        >
-                          &lt;
-                        </span>
-
-
-                        <span>
-                          back to minigames
-                        </span>
-
-
-                        <span
-                          className="
-                            ml-1
-                            border
-                            border-white/15
-                            px-1.5
-                            py-0.5
-                            text-[9px]
-                            text-white/25
-                          "
-                        >
-                          ESC
-                        </span>
-
-                      </button>
+                        Select a directory to continue.
+                      </p>
 
                     </div>
 
 
-                    {/* ======================================== */}
-                    {/* GAME */}
-                    {/* ======================================== */}
+                    <div className="flex-1">
 
-                    {renderActiveGame()}
+                      <List
+                        onLaunchMiniGame={
+                          launchMiniGame
+                        }
+                        returnToMiniGame={
+                          lastMiniGame
+                        }
+                      />
 
-                  </div>
+                    </div>
+
+                  </>
                 )}
 
-            </div>
+
+                {/* ======================================== */}
+                {/* MINIGAME MODE */}
+                {/* ======================================== */}
+
+                {gameOpen &&
+                  activeGameInfo && (
+                    <div className="min-w-0">
+
+                      {/* ======================================== */}
+                      {/* APP TITLE BAR */}
+                      {/* ======================================== */}
+
+                      <div
+                        className="
+                          mb-3
+                          flex
+                          items-center
+                          border-b
+                          border-dashed
+                          border-white/15
+                          pb-3
+                          font-comic
+                        "
+                      >
+
+                        <button
+                          type="button"
+                          onClick={
+                            closeActiveApp
+                          }
+                          className="
+                            group
+                            flex
+                            items-center
+                            gap-2
+                            text-xs
+                            text-white/35
+                            transition-colors
+                            hover:text-white/75
+                          "
+                        >
+
+                          <span
+                            className="
+                              transition-transform
+                              duration-150
+                              group-hover:-translate-x-1
+                            "
+                          >
+                            &lt;
+                          </span>
+
+
+                          <span>
+                            back to minigames
+                          </span>
+
+
+                          <span
+                            className="
+                              ml-1
+                              border
+                              border-white/15
+                              px-1.5
+                              py-0.5
+                              text-[9px]
+                              text-white/25
+                            "
+                          >
+                            ESC
+                          </span>
+
+                        </button>
+
+                      </div>
+
+
+                      {/* ======================================== */}
+                      {/* GAME */}
+                      {/* ======================================== */}
+
+                      {renderActiveGame()}
+
+                    </div>
+                  )}
+
+              </div>
+            )}
 
           </div>
+
         </fieldset>
 
 
@@ -817,13 +1108,16 @@ function Container() {
             duration-200
           "
         >
-          {gameOpen &&
-          activeGameInfo
-            ? activeGameInfo.footer
-            : "keyboard recommended :)"}
+          {showHireMe
+            ? "worth a shot :)"
+            : gameOpen &&
+              activeGameInfo
+              ? activeGameInfo.footer
+              : "keyboard recommended :)"}
         </p>
 
       </section>
+
     </main>
   )
 }
