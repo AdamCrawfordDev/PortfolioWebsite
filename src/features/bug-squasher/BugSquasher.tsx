@@ -1,17 +1,28 @@
 import {
+  useEffect,
   useState,
 } from "react"
 
 import PipelineGame from "./game/PipelineGame"
 
 import {
+  DEFAULT_DIFFICULTY,
   PIPELINE_STAGES,
   PLAYER_MAX_HEALTH,
 } from "./game/config"
 
 import type {
+  Difficulty,
   GameStats,
 } from "./game/types"
+
+
+const DIFFICULTIES: Difficulty[] = [
+  "easy",
+  "medium",
+  "hard",
+  "impossible",
+]
 
 
 function BugSquasher() {
@@ -20,6 +31,14 @@ function BugSquasher() {
 
   const [running, setRunning] =
     useState(false)
+
+  const [difficulty, setDifficulty] =
+    useState<Difficulty>(DEFAULT_DIFFICULTY)
+
+  // "difficulty" means the keyboard is choosing a difficulty.
+  // "start" means the choice is locked in and Enter will start the run.
+  const [startScreenFocus, setStartScreenFocus] =
+    useState<"difficulty" | "start">("difficulty")
 
   const [stats, setStats] =
     useState<GameStats>({
@@ -96,6 +115,122 @@ function BugSquasher() {
     "complete"
 
 
+  // ========================================
+  // START SCREEN KEYBOARD CONTROLS
+  // ========================================
+  //
+  // This is a two-step keyboard flow:
+  //
+  //   1. ← / → chooses a difficulty.
+  //   2. Enter confirms that difficulty and moves focus to START.
+  //   3. Enter again activates START and begins the game.
+  //
+  // Once START is focused, ↑ returns to difficulty selection.
+  useEffect(() => {
+    if (
+      running ||
+      isGameOver ||
+      isComplete
+    ) {
+      return
+    }
+
+    function handleStartScreenKeyDown(
+      event: KeyboardEvent
+    ) {
+      const isPrevious =
+        event.code === "ArrowLeft" ||
+        event.code === "KeyA"
+
+      const isNext =
+        event.code === "ArrowRight" ||
+        event.code === "KeyD"
+
+      if (
+        startScreenFocus === "difficulty" &&
+        (isPrevious || isNext)
+      ) {
+        event.preventDefault()
+        event.stopPropagation()
+
+        setDifficulty((current) => {
+          const currentIndex =
+            DIFFICULTIES.indexOf(current)
+
+          const direction =
+            isPrevious ? -1 : 1
+
+          const nextIndex =
+            (
+              currentIndex +
+              direction +
+              DIFFICULTIES.length
+            ) %
+            DIFFICULTIES.length
+
+          return DIFFICULTIES[nextIndex]
+        })
+
+        return
+      }
+
+      if (
+        startScreenFocus === "difficulty" &&
+        event.code === "Enter"
+      ) {
+        event.preventDefault()
+        event.stopPropagation()
+
+        // Confirm difficulty only. Do NOT start yet.
+        setStartScreenFocus("start")
+        return
+      }
+
+      if (
+        startScreenFocus === "start" &&
+        (
+          event.code === "ArrowUp" ||
+          event.code === "KeyW"
+        )
+      ) {
+        event.preventDefault()
+        event.stopPropagation()
+
+        setStartScreenFocus("difficulty")
+        return
+      }
+
+      if (
+        startScreenFocus === "start" &&
+        event.code === "Enter"
+      ) {
+        event.preventDefault()
+        event.stopPropagation()
+
+        startGame()
+      }
+    }
+
+    window.addEventListener(
+      "keydown",
+      handleStartScreenKeyDown,
+      true
+    )
+
+    return () => {
+      window.removeEventListener(
+        "keydown",
+        handleStartScreenKeyDown,
+        true
+      )
+    }
+  }, [
+    running,
+    isGameOver,
+    isComplete,
+    startScreenFocus,
+  ])
+
   return (
     <div className="font-comic">
       <div className="mb-5">
@@ -106,71 +241,6 @@ function BugSquasher() {
         <h2 className="mt-2 font-comic-serif text-3xl text-white">
           CI/CD Defense
         </h2>
-
-        <p className="mt-2 max-w-xl text-sm leading-6 text-white/45">
-          Something has gone very wrong
-          in the pipeline. Keep the build
-          alive and make it to production.
-        </p>
-      </div>
-
-
-      {/* ========================================
-          HUD
-      ======================================== */}
-
-      <div className="mb-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs">
-        <div>
-          <span className="text-white/25">
-            stage:{" "}
-          </span>
-
-          <span className="text-white/65">
-            {stageName}
-          </span>
-        </div>
-
-        <div>
-          <span className="text-white/25">
-            score:{" "}
-          </span>
-
-          <span className="text-white/65">
-            {stats.score}
-          </span>
-        </div>
-
-        <div>
-          <span className="text-white/25">
-            integrity:{" "}
-          </span>
-
-          <span className="text-white/65">
-            {"■".repeat(
-              Math.max(
-                Math.min(
-                  stats.health,
-                  stats.maxHealth
-                ),
-                0
-              )
-            )}
-
-            <span className="text-white/15">
-              {"□".repeat(
-                Math.max(
-                  stats.maxHealth -
-                    stats.health,
-                  0
-                )
-              )}
-            </span>
-          </span>
-        </div>
-
-        <div className="ml-auto hidden text-[10px] tracking-[0.18em] text-white/20 sm:block">
-          CI/CD DEFENCE SYSTEM
-        </div>
       </div>
 
 
@@ -213,6 +283,7 @@ function BugSquasher() {
         <PipelineGame
           key={runId}
           running={running}
+          difficulty={difficulty}
           onStatsChange={
             setStats
           }
@@ -242,27 +313,81 @@ function BugSquasher() {
                   before they reach production.
                 </p>
 
+                <div className="mt-5">
+                  <div className="mb-2 text-[9px] tracking-[0.18em] text-white/25">
+                    DIFFICULTY
+                  </div>
+
+                  <div className="mb-3 text-[9px] tracking-[0.1em] text-white/20">
+                    ← / → SELECT · ENTER CONFIRM
+                  </div>
+
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {DIFFICULTIES.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => {
+                          setDifficulty(option)
+                          setStartScreenFocus("difficulty")
+                        }}
+                        className={`border px-3 py-1.5 text-[10px] uppercase tracking-[0.12em] transition ${
+                          difficulty === option
+                            ? startScreenFocus === "difficulty"
+                              ? "border-white/70 bg-white/[0.10] text-white"
+                              : "border-white/35 bg-white/[0.04] text-white/55"
+                            : "border-white/15 bg-white/[0.01] text-white/35 hover:border-white/35 hover:text-white/65"
+                        }`}
+                      >
+                        {difficulty === option
+                          ? `> ${option}`
+                          : option}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="mt-2 text-[9px] text-white/20">
+                    {difficulty === "hard"
+                      ? "getting tricky"
+                      : difficulty === "medium"
+                        ? "recommended"
+                        : difficulty === "easy"
+                          ? "reduced traffic"
+                          : "good luck"}
+                  </div>
+                </div>
+
                 <button
                   type="button"
                   onClick={startGame}
-                  className="
+                  className={`
                     mt-6
                     border
-                    border-white/25
-                    bg-white/[0.02]
                     px-5
                     py-2
                     text-sm
-                    text-white/65
                     transition
                     hover:-translate-y-0.5
                     hover:border-white/60
                     hover:bg-white/[0.05]
                     hover:text-white
-                  "
+                    ${
+                      startScreenFocus === "start"
+                        ? "border-white/70 bg-white/[0.08] text-white"
+                        : "border-white/25 bg-white/[0.02] text-white/65"
+                    }
+                  `}
                 >
-                  &gt; start pipeline
+                  {startScreenFocus === "start"
+                    ? "> start pipeline"
+                    : "start pipeline"}
                 </button>
+
+                <div className="mt-2 text-[9px] tracking-[0.1em] text-white/20">
+                  {startScreenFocus === "difficulty"
+                    ? "ENTER · CONFIRM DIFFICULTY"
+                    : "ENTER · START PIPELINE   ↑ · CHANGE DIFFICULTY"}
+                </div>
               </div>
             </div>
           )}
@@ -432,10 +557,6 @@ function BugSquasher() {
 
         <span className="text-orange-300/55">
           ↶ REGRESSION
-        </span>
-
-        <span className="text-sky-300/55">
-          ◉ END USER
         </span>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import type {
+  Difficulty,
   EnemyType,
   PipelineStage,
   UpgradeDefinition,
@@ -15,7 +16,31 @@ export const PLAYER_MAX_HEALTH = 5
 export const BULLET_WIDTH = 4
 export const BULLET_HEIGHT = 14
 export const BULLET_SPEED = 700
+
+// Seconds between shots. Lower = faster firing.
 export const FIRE_RATE = 0.2
+
+// Hard is deliberately the original game: multiplier 1 changes nothing.
+// Medium is the default and gives 30% longer between enemy spawns.
+export const DEFAULT_DIFFICULTY: Difficulty = "medium"
+
+export const DIFFICULTY_SPAWN_MULTIPLIERS:
+  Record<Difficulty, number> = {
+    easy: 1.7,
+    medium: 1.3,
+    hard: 1,
+    impossible: 0.65,
+  }
+
+export function getDifficultySpawnInterval(
+  baseInterval: number,
+  difficulty: Difficulty
+) {
+  return (
+    baseInterval *
+    DIFFICULTY_SPAWN_MULTIPLIERS[difficulty]
+  )
+}
 
 export const PIPELINE_STAGES: PipelineStage[] = [
   { id: "source", name: "SOURCE", duration: 10, spawnInterval: 1.2, enemies: ["syntax"] },
@@ -52,7 +77,7 @@ export const STAGE_BRIEFINGS: Record<string, StageBriefing> = {
     enemyName: "FLAKY BUG",
     glyph: "~",
     description: "Drifts unpredictably across the pipeline. Do not trust its trajectory.",
-    quip: '"sometimes it works. that\'s worse."',
+    quip: '"sometimes it works. thats worse."',
   },
   test: {
     threatLabel: "NEW THREAT DETECTED",
@@ -91,7 +116,7 @@ export const ENEMY_CONFIG: Record<EnemyType, {
   scoreValue: number
 }> = {
   syntax: { width: 34, height: 26, speed: 115, health: 0.2, scoreValue: 100 },
-  flaky: { width: 40, height: 26, speed: 80, health: 1.75, scoreValue: 150 },
+  flaky: { width: 42.5, height: 26, speed: 80, health: 1.75, scoreValue: 150 },
   compile: { width: 46, height: 34, speed: 70, health: 2.25, scoreValue: 300 },
   regression: { width: 28, height: 22, speed: 165, health: 1, scoreValue: 250 },
 }

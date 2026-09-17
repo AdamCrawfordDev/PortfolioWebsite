@@ -234,7 +234,7 @@ export const navigation:
           "/minigames/ci-cd-defense",
 
         description:
-          "Defend the CI/CD pipeline from bugs as they move through each stage towards production.",
+          "Fight your way through the build pipeline, squashing bugs before they reach production. Just make sure you save some integrity for whatever is waiting on the other side...",
 
         subtitle:
           "interactive game",

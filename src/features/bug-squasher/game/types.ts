@@ -4,6 +4,12 @@ export type GameState =
   | "game-over"
   | "complete"
 
+export type Difficulty =
+  | "easy"
+  | "medium"
+  | "hard"
+  | "impossible"
+
 export type EnemyType =
   | "syntax"
   | "flaky"

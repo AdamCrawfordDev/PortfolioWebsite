@@ -12,6 +12,7 @@ import {
   CANVAS_WIDTH,
   ENEMY_CONFIG,
   FIRE_RATE,
+  getDifficultySpawnInterval,
   PIPELINE_STAGES,
   PLAYER_HEIGHT,
   PLAYER_MAX_HEALTH,
@@ -27,6 +28,7 @@ import type {
   EnemyType,
   FloatingText,
   GameStats,
+  Difficulty,
   Particle,
   Player,
   UpgradeDefinition,
@@ -38,6 +40,7 @@ import { UPGRADE_ICONS } from "../assets/upgrade-icons"
 
 type PipelineGameProps = {
   running: boolean
+  difficulty: Difficulty
 
   onStatsChange:
     (stats: GameStats) => void
@@ -142,6 +145,7 @@ const BOSS_QUIPS = [
 
 function PipelineGame({
   running,
+  difficulty,
   onStatsChange,
 }: PipelineGameProps) {
 
@@ -180,6 +184,21 @@ function PipelineGame({
     setProdUpgradesSelected,
   ] =
     useState<UpgradeId[]>([])
+
+  const [
+    upgradeKeyboardIndex,
+    setUpgradeKeyboardIndex,
+  ] = useState(0)
+
+  const [
+    prodKeyboardIndex,
+    setProdKeyboardIndex,
+  ] = useState(0)
+
+  const [
+    prodStartFocused,
+    setProdStartFocused,
+  ] = useState(false)
 
 
   // ========================================
@@ -409,6 +428,69 @@ function PipelineGame({
     playerRef.current =
       createPlayer()
 
+    console.group(
+      `[CI/CD Defense][NEW RUN] difficulty=${difficulty}`
+    )
+    console.log(
+      "[DIFFICULTY]",
+      {
+        selected: difficulty,
+        sourceBase:
+          PIPELINE_STAGES[0].spawnInterval,
+        sourceEffective:
+          getDifficultySpawnInterval(
+            PIPELINE_STAGES[0].spawnInterval,
+            difficulty
+          ),
+      }
+    )
+    console.log(
+      "[BASE PLAYER RESET]",
+      {
+        speed:
+          playerRef.current.speed,
+        health:
+          playerRef.current.health,
+        maxHealth:
+          playerRef.current.maxHealth,
+        fireRate:
+          playerRef.current.fireRate,
+        bulletDamage:
+          playerRef.current.bulletDamage,
+        bulletSpeed:
+          playerRef.current.bulletSpeed,
+        bulletWidth:
+          playerRef.current.bulletWidth,
+        projectileCount:
+          playerRef.current.projectileCount,
+        bulletPierce:
+          playerRef.current.bulletPierce,
+        shieldCharges:
+          playerRef.current.shieldCharges,
+        critChance:
+          playerRef.current.critChance,
+        heatMultiplier: 1,
+      }
+    )
+    console.log(
+      "[EXPECTED BASE]",
+      {
+        speed: PLAYER_SPEED,
+        health: PLAYER_MAX_HEALTH,
+        maxHealth: PLAYER_MAX_HEALTH,
+        fireRate: FIRE_RATE,
+        bulletDamage: 1,
+        bulletSpeed: BULLET_SPEED,
+        bulletWidth: BULLET_WIDTH,
+        projectileCount: 1,
+        bulletPierce: 0,
+        shieldCharges: 0,
+        critChance: 0,
+        heatMultiplier: 1,
+      }
+    )
+    console.groupEnd()
+
     bulletsRef.current = []
     enemiesRef.current = []
 
@@ -458,6 +540,24 @@ function PipelineGame({
 
     boundaryFlashRef.current = 0
 
+    // A new run must never inherit anything from the previous build.
+    keysRef.current.clear()
+
+    bossRef.current = null
+    bossActiveRef.current = false
+    bossSpawnTimerRef.current = 0
+    bossQuipTimerRef.current = 0
+    bossQuipIndexRef.current = 0
+
+    setUpgradeChoices([])
+    setBossIntroVisible(false)
+    setBossIntroStep("intro")
+    setProdUpgradeChoices([])
+    setProdUpgradesSelected([])
+    setUpgradeKeyboardIndex(0)
+    setProdKeyboardIndex(0)
+    setProdStartFocused(false)
+
     stageTransitionRef.current = {
       active: false,
       elapsed: 0,
@@ -468,10 +568,6 @@ function PipelineGame({
         PLAYER_HEIGHT -
         35,
     }
-
-    setBossIntroVisible(false)
-    setProdUpgradeChoices([])
-    setProdUpgradesSelected([])
 
     publishStats(
       "running"
@@ -667,6 +763,8 @@ function PipelineGame({
           Math.random() - 0.5
       )
     )
+
+    setUpgradeKeyboardIndex(0)
   }
 
 
@@ -803,27 +901,240 @@ function PipelineGame({
   function selectProdUpgrade(
     upgradeId: UpgradeId
   ) {
-    if (
-      prodUpgradesSelected.includes(
-        upgradeId
-      ) ||
-      prodUpgradesSelected.length >= 2
-    ) {
-      return
-    }
-
-    applyUpgradeEffect(
-      upgradeId
-    )
-
     setProdUpgradesSelected(
-      (current) => [
-        ...current,
-        upgradeId,
-      ]
+      (current) => {
+        if (
+          current.includes(
+            upgradeId
+          )
+        ) {
+          return current.filter(
+            (id) =>
+              id !== upgradeId
+          )
+        }
+
+        if (
+          current.length >= 2
+        ) {
+          return current
+        }
+
+        return [
+          ...current,
+          upgradeId,
+        ]
+      }
     )
+
+    setProdStartFocused(false)
   }
 
+
+  // ========================================
+  // SELECTION SCREEN KEYBOARD INPUT
+  // ========================================
+
+  useEffect(() => {
+    function selectionKeyDown(
+      event: KeyboardEvent
+    ) {
+      // Normal level upgrade: arrows choose, Enter installs and starts.
+      if (
+        upgradeChoices.length > 0 &&
+        !bossIntroVisible
+      ) {
+        const previous =
+          event.code === "ArrowLeft" ||
+          event.code === "ArrowUp" ||
+          event.code === "KeyA" ||
+          event.code === "KeyW"
+
+        const next =
+          event.code === "ArrowRight" ||
+          event.code === "ArrowDown" ||
+          event.code === "KeyD" ||
+          event.code === "KeyS"
+
+        if (previous || next) {
+          event.preventDefault()
+          event.stopPropagation()
+
+          setUpgradeKeyboardIndex(
+            (current) =>
+              (
+                current +
+                (previous ? -1 : 1) +
+                upgradeChoices.length
+              ) %
+              upgradeChoices.length
+          )
+          return
+        }
+
+        if (event.code === "Enter") {
+          event.preventDefault()
+          event.stopPropagation()
+
+          const choice =
+            upgradeChoices[
+              upgradeKeyboardIndex
+            ]
+
+          if (choice) {
+            applyUpgrade(
+              choice.id
+            )
+          }
+          return
+        }
+      }
+
+      // PROD intro: Enter moves into emergency upgrade selection.
+      if (
+        bossIntroVisible &&
+        bossIntroStep === "intro" &&
+        event.code === "Enter"
+      ) {
+        event.preventDefault()
+        event.stopPropagation()
+        setBossIntroStep("upgrades")
+        setProdKeyboardIndex(0)
+        setProdStartFocused(false)
+        return
+      }
+
+      if (
+        !bossIntroVisible ||
+        bossIntroStep !== "upgrades" ||
+        prodUpgradeChoices.length === 0
+      ) {
+        return
+      }
+
+      // START PROD is a separate focus target.
+      if (prodStartFocused) {
+        if (
+          event.code === "ArrowUp" ||
+          event.code === "KeyW"
+        ) {
+          event.preventDefault()
+          event.stopPropagation()
+          setProdStartFocused(false)
+          return
+        }
+
+        if (event.code === "Enter") {
+          event.preventDefault()
+          event.stopPropagation()
+
+          if (
+            prodUpgradesSelected.length === 2
+          ) {
+            beginBossFight()
+          }
+          return
+        }
+
+        return
+      }
+
+      if (event.code === "Enter") {
+        event.preventDefault()
+        event.stopPropagation()
+
+        const choice =
+          prodUpgradeChoices[
+            prodKeyboardIndex
+          ]
+
+        if (choice) {
+          selectProdUpgrade(
+            choice.id
+          )
+        }
+        return
+      }
+
+      let nextIndex =
+        prodKeyboardIndex
+
+      if (
+        event.code === "ArrowLeft" ||
+        event.code === "KeyA"
+      ) {
+        nextIndex -= 1
+      } else if (
+        event.code === "ArrowRight" ||
+        event.code === "KeyD"
+      ) {
+        nextIndex += 1
+      } else if (
+        event.code === "ArrowUp" ||
+        event.code === "KeyW"
+      ) {
+        nextIndex -= 2
+      } else if (
+        event.code === "ArrowDown" ||
+        event.code === "KeyS"
+      ) {
+        const candidate =
+          nextIndex + 2
+
+        if (
+          candidate >=
+            prodUpgradeChoices.length &&
+          prodUpgradesSelected.length === 2
+        ) {
+          event.preventDefault()
+          event.stopPropagation()
+          setProdStartFocused(true)
+          return
+        }
+
+        nextIndex =
+          candidate
+      } else {
+        return
+      }
+
+      event.preventDefault()
+      event.stopPropagation()
+
+      setProdKeyboardIndex(
+        Math.max(
+          0,
+          Math.min(
+            prodUpgradeChoices.length - 1,
+            nextIndex
+          )
+        )
+      )
+    }
+
+    window.addEventListener(
+      "keydown",
+      selectionKeyDown,
+      true
+    )
+
+    return () => {
+      window.removeEventListener(
+        "keydown",
+        selectionKeyDown,
+        true
+      )
+    }
+  }, [
+    upgradeChoices,
+    upgradeKeyboardIndex,
+    bossIntroVisible,
+    bossIntroStep,
+    prodUpgradeChoices,
+    prodUpgradesSelected,
+    prodKeyboardIndex,
+    prodStartFocused,
+  ])
 
 
   // ========================================
@@ -2574,6 +2885,8 @@ function PipelineGame({
     )
 
     setProdUpgradesSelected([])
+    setProdKeyboardIndex(0)
+    setProdStartFocused(false)
     setBossIntroStep("intro")
     setBossIntroVisible(true)
 
@@ -2590,8 +2903,18 @@ function PipelineGame({
       return
     }
 
+    for (
+      const upgradeId of
+      prodUpgradesSelected
+    ) {
+      applyUpgradeEffect(
+        upgradeId
+      )
+    }
+
     setBossIntroVisible(false)
     setProdUpgradeChoices([])
+    setProdStartFocused(false)
 
     gamePausedRef.current =
       false
@@ -2708,13 +3031,23 @@ function PipelineGame({
           ? BOSS_ENEMY_SPAWN_INTERVAL_MID
           : BOSS_ENEMY_SPAWN_INTERVAL_LOW
 
+    const effectiveBossSpawnInterval =
+      getDifficultySpawnInterval(
+        spawnInterval,
+        difficulty
+      )
+
     bossSpawnTimerRef.current +=
       delta
 
     if (
       bossSpawnTimerRef.current >=
-      spawnInterval
+      effectiveBossSpawnInterval
     ) {
+      console.log(
+        `[CI/CD Defense][PROD SPAWN] difficulty=${difficulty} base=${spawnInterval.toFixed(3)}s effective=${effectiveBossSpawnInterval.toFixed(3)}s`
+      )
+
       bossSpawnTimerRef.current =
         0
 
@@ -3427,10 +3760,20 @@ function PipelineGame({
       delta
 
 
+    const effectiveSpawnInterval =
+      getDifficultySpawnInterval(
+        stage.spawnInterval,
+        difficulty
+      )
+
     if (
       spawnTimerRef.current >=
-      stage.spawnInterval
+      effectiveSpawnInterval
     ) {
+      console.log(
+        `[CI/CD Defense][SPAWN] stage=${stage.name} difficulty=${difficulty} base=${stage.spawnInterval.toFixed(3)}s effective=${effectiveSpawnInterval.toFixed(3)}s`
+      )
+
       spawnEnemy()
 
       spawnTimerRef.current =
@@ -4104,7 +4447,7 @@ function PipelineGame({
       "center"
 
     context.fillText(
-      `PROD INCIDENT  ${boss.health}/${boss.maxHealth}`,
+      `PROD INCIDENT  ${Math.round(boss.health)}/${Math.round(boss.maxHealth)}`,
       centreX,
       healthY + 9
     )
@@ -4322,68 +4665,252 @@ function PipelineGame({
         )
       )
 
+    const centreX =
+      player.x +
+      player.width / 2
 
-    if (
-      player.hitFlash >
-      0
-    ) {
-      context.fillStyle =
-        "rgba(248,113,113,0.8)"
+    const top =
+      player.y
 
-      context.strokeStyle =
-        "rgba(255,255,255,1)"
-    }
-
-    else {
-      context.fillStyle =
-        "rgba(255,255,255,0.10)"
-
-      context.strokeStyle =
-        "rgba(255,255,255,0.8)"
-    }
-
-
-    context.fillRect(
-      player.x,
-      player.y,
-
-      player.width,
+    const bottom =
+      player.y +
       player.height
+
+    const flashing =
+      player.hitFlash > 0
+
+    context.save()
+
+    context.lineJoin =
+      "round"
+
+    context.lineCap =
+      "round"
+
+    context.lineWidth =
+      1.5
+
+    context.strokeStyle =
+      flashing
+        ? "rgba(255,255,255,1)"
+        : "rgba(186,230,253,0.88)"
+
+    context.fillStyle =
+      flashing
+        ? "rgba(248,113,113,0.72)"
+        : "rgba(125,211,252,0.08)"
+
+
+    // ----------------------------------------
+    // MAIN SHIP HULL
+    // ----------------------------------------
+    //
+    // Angular little interceptor rather than a plain rectangle.
+    // It keeps the same collision box, so this is purely visual.
+
+    context.beginPath()
+
+    context.moveTo(
+      centreX,
+      top - 5
     )
 
-
-    context.strokeRect(
-      player.x,
-      player.y,
-
-      player.width,
-      player.height
+    context.lineTo(
+      player.x +
+        player.width * 0.68,
+      top + 4
     )
 
+    context.lineTo(
+      player.x +
+        player.width - 2,
+      bottom - 4
+    )
 
-    // cannon mirrors the current weapon temperature
+    context.lineTo(
+      player.x +
+        player.width * 0.70,
+      bottom - 2
+    )
+
+    context.lineTo(
+      centreX,
+      bottom + 2
+    )
+
+    context.lineTo(
+      player.x +
+        player.width * 0.30,
+      bottom - 2
+    )
+
+    context.lineTo(
+      player.x + 2,
+      bottom - 4
+    )
+
+    context.lineTo(
+      player.x +
+        player.width * 0.32,
+      top + 4
+    )
+
+    context.closePath()
+
+    context.fill()
+    context.stroke()
+
+
+    // ----------------------------------------
+    // INNER COCKPIT / CORE
+    // ----------------------------------------
+
+    context.fillStyle =
+      flashing
+        ? "rgba(255,255,255,0.92)"
+        : "rgba(186,230,253,0.18)"
+
+    context.strokeStyle =
+      flashing
+        ? "rgba(255,255,255,1)"
+        : "rgba(186,230,253,0.72)"
+
+    context.beginPath()
+
+    context.moveTo(
+      centreX,
+      top + 2
+    )
+
+    context.lineTo(
+      centreX + 6,
+      top + 10
+    )
+
+    context.lineTo(
+      centreX + 4,
+      bottom - 5
+    )
+
+    context.lineTo(
+      centreX - 4,
+      bottom - 5
+    )
+
+    context.lineTo(
+      centreX - 6,
+      top + 10
+    )
+
+    context.closePath()
+
+    context.fill()
+    context.stroke()
+
+
+    // ----------------------------------------
+    // WING DETAILS
+    // ----------------------------------------
+
+    context.strokeStyle =
+      flashing
+        ? "rgba(255,255,255,0.95)"
+        : "rgba(125,211,252,0.45)"
+
+    context.beginPath()
+
+    context.moveTo(
+      player.x + 5,
+      bottom - 5
+    )
+
+    context.lineTo(
+      player.x + 14,
+      top + 10
+    )
+
+    context.moveTo(
+      player.x +
+        player.width - 5,
+      bottom - 5
+    )
+
+    context.lineTo(
+      player.x +
+        player.width - 14,
+      top + 10
+    )
+
+    context.stroke()
+
+
+    // ----------------------------------------
+    // WEAPON CANNON
+    // ----------------------------------------
 
     context.fillStyle =
       heatRatio < 0.35
-        ? "rgba(255,255,255,0.85)"
+        ? "rgba(255,255,255,0.90)"
         : getHeatColour(
             heatRatio
           )
 
-
     context.fillRect(
-      player.x +
-      player.width / 2 -
-      2,
-
-      player.y - 8,
-
+      centreX - 2,
+      top - 11,
       4,
       8
     )
 
+    // Small cannon tip gives it the same slightly mechanical,
+    // constructed feel as the enemy glyphs.
+    context.fillRect(
+      centreX - 4,
+      top - 12,
+      8,
+      2
+    )
 
-    // shield indicator
+
+    // ----------------------------------------
+    // ENGINE EXHAUST
+    // ----------------------------------------
+
+    context.strokeStyle =
+      heatRatio >= 0.72
+        ? getHeatColour(
+            heatRatio
+          )
+        : "rgba(125,211,252,0.55)"
+
+    context.beginPath()
+
+    context.moveTo(
+      centreX - 6,
+      bottom
+    )
+
+    context.lineTo(
+      centreX - 4,
+      bottom + 6
+    )
+
+    context.moveTo(
+      centreX + 6,
+      bottom
+    )
+
+    context.lineTo(
+      centreX + 4,
+      bottom + 6
+    )
+
+    context.stroke()
+
+
+    // ----------------------------------------
+    // SHIELD INDICATOR
+    // ----------------------------------------
 
     if (
       player.shieldCharges >
@@ -4392,26 +4919,73 @@ function PipelineGame({
       context.strokeStyle =
         "rgba(125,211,252,0.65)"
 
+      context.lineWidth =
+        1.25
+
       context.beginPath()
 
       context.arc(
-        player.x +
-        player.width / 2,
-
+        centreX,
         player.y +
-        player.height / 2,
+          player.height / 2,
 
         player.width /
-        1.4,
+          1.25,
 
         0,
 
         Math.PI *
-        2
+          2
+      )
+
+      context.stroke()
+
+      // Tiny segmented marks stop the shield looking like
+      // a generic perfect circle.
+      context.beginPath()
+
+      context.moveTo(
+        centreX,
+        player.y -
+          9
+      )
+
+      context.lineTo(
+        centreX,
+        player.y -
+          5
+      )
+
+      context.moveTo(
+        player.x - 7,
+        player.y +
+          player.height / 2
+      )
+
+      context.lineTo(
+        player.x - 3,
+        player.y +
+          player.height / 2
+      )
+
+      context.moveTo(
+        player.x +
+          player.width + 3,
+        player.y +
+          player.height / 2
+      )
+
+      context.lineTo(
+        player.x +
+          player.width + 7,
+        player.y +
+          player.height / 2
       )
 
       context.stroke()
     }
+
+    context.restore()
   }
 
 
@@ -4486,6 +5060,256 @@ function PipelineGame({
 
     context.textAlign =
       "start"
+  }
+
+
+
+  // ========================================
+  // IN-GAME HUD
+  // ========================================
+
+  function drawInGameHud(
+    context: CanvasRenderingContext2D
+  ) {
+    const player =
+      playerRef.current
+
+    const stage =
+      PIPELINE_STAGES[
+        stageIndexRef.current
+      ]
+
+    const stageName =
+      stage
+        ? stage.name
+        : "PROD"
+
+    context.save()
+
+    context.textBaseline =
+      "top"
+
+    // About 10% larger than the previous HUD.
+    const labelFont =
+      "bold 15px monospace"
+
+    const valueFont =
+      "bold 18px monospace"
+
+
+    // ========================================
+    // LEFT · INTEGRITY
+    // ========================================
+
+    context.font =
+      labelFont
+
+    context.textAlign =
+      "left"
+
+    context.fillStyle =
+      "rgba(255,255,255,0.38)"
+
+    context.fillText(
+      "INTEGRITY",
+      18,
+      14
+    )
+
+    const health =
+      Math.max(
+        0,
+        Math.min(
+          Math.round(
+            player.health
+          ),
+          Math.round(
+            player.maxHealth
+          )
+        )
+      )
+
+    const maxHealth =
+      Math.max(
+        0,
+        Math.round(
+          player.maxHealth
+        )
+      )
+
+    // Draw little outlined/fill hearts individually so spacing is
+    // consistent even when max integrity changes through upgrades.
+    const heartWidth = 14
+    const heartHeight = 12
+    const heartGap = 7
+    const heartStartX = 18
+    const heartY = 36
+
+    function drawHeart(
+      x: number,
+      y: number,
+      filled: boolean
+    ) {
+      context.save()
+
+      context.beginPath()
+
+      context.moveTo(
+        x + heartWidth / 2,
+        y + heartHeight
+      )
+
+      context.bezierCurveTo(
+        x + 1,
+        y + heartHeight * 0.62,
+        x - 1,
+        y + heartHeight * 0.20,
+        x + heartWidth * 0.24,
+        y + heartHeight * 0.18
+      )
+
+      context.bezierCurveTo(
+        x + heartWidth * 0.39,
+        y - 1,
+        x + heartWidth * 0.50,
+        y + heartHeight * 0.08,
+        x + heartWidth / 2,
+        y + heartHeight * 0.24
+      )
+
+      context.bezierCurveTo(
+        x + heartWidth * 0.50,
+        y + heartHeight * 0.08,
+        x + heartWidth * 0.61,
+        y - 1,
+        x + heartWidth * 0.76,
+        y + heartHeight * 0.18
+      )
+
+      context.bezierCurveTo(
+        x + heartWidth + 1,
+        y + heartHeight * 0.20,
+        x + heartWidth - 1,
+        y + heartHeight * 0.62,
+        x + heartWidth / 2,
+        y + heartHeight
+      )
+
+      context.closePath()
+
+      context.lineWidth = 1.4
+
+      context.strokeStyle =
+        filled
+          ? "rgba(248,113,113,0.92)"
+          : "rgba(255,255,255,0.20)"
+
+      context.fillStyle =
+        filled
+          ? "rgba(248,113,113,0.28)"
+          : "rgba(255,255,255,0.025)"
+
+      context.fill()
+      context.stroke()
+
+      // Tiny highlight makes the filled hearts feel like actual HUD icons
+      // while staying in the game's simple line-art style.
+      if (filled) {
+        context.fillStyle =
+          "rgba(255,255,255,0.62)"
+
+        context.fillRect(
+          x + 4,
+          y + 3,
+          2,
+          2
+        )
+      }
+
+      context.restore()
+    }
+
+    for (
+      let index = 0;
+      index < maxHealth;
+      index++
+    ) {
+      drawHeart(
+        heartStartX +
+          index *
+            (heartWidth + heartGap),
+        heartY,
+        index < health
+      )
+    }
+
+
+    // ========================================
+    // CENTRE · STAGE
+    // ========================================
+
+    context.font =
+      labelFont
+
+    context.textAlign =
+      "center"
+
+    context.fillStyle =
+      "rgba(255,255,255,0.38)"
+
+    context.fillText(
+      "STAGE",
+      CANVAS_WIDTH / 2,
+      14
+    )
+
+    context.font =
+      valueFont
+
+    context.fillStyle =
+      "rgba(255,255,255,0.92)"
+
+    context.fillText(
+      stageName,
+      CANVAS_WIDTH / 2,
+      34
+    )
+
+
+    // ========================================
+    // RIGHT · SCORE
+    // ========================================
+
+    context.font =
+      labelFont
+
+    context.textAlign =
+      "right"
+
+    context.fillStyle =
+      "rgba(255,255,255,0.38)"
+
+    context.fillText(
+      "SCORE",
+      CANVAS_WIDTH - 18,
+      14
+    )
+
+    context.font =
+      valueFont
+
+    context.fillStyle =
+      "rgba(255,255,255,0.92)"
+
+    context.fillText(
+      String(
+        scoreRef.current
+      ),
+      CANVAS_WIDTH - 18,
+      34
+    )
+
+    context.restore()
   }
 
 
@@ -4660,6 +5484,11 @@ function PipelineGame({
 
 
     context.restore()
+
+    // Draw last so the HUD always stays above enemies, bullets and effects.
+    drawInGameHud(
+      context
+    )
   }
 
 
@@ -4903,7 +5732,7 @@ function PipelineGame({
         )
       }
     }
-  }, [running])
+  }, [running, difficulty])
 
 
   // ========================================
@@ -5282,7 +6111,7 @@ function PipelineGame({
 
                   <div className="mt-2.5 grid grid-cols-2 gap-2 max-[560px]:grid-cols-1">
                     {prodUpgradeChoices.map(
-                      (upgrade) => {
+                      (upgrade, index) => {
                         const selected =
                           prodUpgradesSelected.includes(
                             upgrade.id
@@ -5297,13 +6126,14 @@ function PipelineGame({
                             key={upgrade.id}
                             type="button"
                             disabled={
-                              selected || locked
+                              locked
                             }
-                            onClick={() =>
+                            onClick={() => {
+                              setProdKeyboardIndex(index)
                               selectProdUpgrade(
                                 upgrade.id
                               )
-                            }
+                            }}
                             className={`
                               min-h-[84px]
                               border
@@ -5314,10 +6144,14 @@ function PipelineGame({
                               transition
                               ${
                                 selected
-                                  ? "border-emerald-200/55 bg-emerald-200/[0.06]"
+                                  ? index === prodKeyboardIndex && !prodStartFocused
+                                    ? "border-emerald-100/90 bg-emerald-200/[0.09]"
+                                    : "border-emerald-200/55 bg-emerald-200/[0.06]"
                                   : locked
                                     ? "cursor-not-allowed border-white/5 opacity-30"
-                                    : "border-white/15 hover:-translate-y-0.5 hover:border-sky-100/45 hover:bg-sky-100/[0.025]"
+                                    : index === prodKeyboardIndex && !prodStartFocused
+                                      ? "border-sky-100/70 bg-sky-100/[0.05]"
+                                      : "border-white/15 hover:-translate-y-0.5 hover:border-sky-100/45 hover:bg-sky-100/[0.025]"
                               }
                             `}
                           >
@@ -5335,8 +6169,8 @@ function PipelineGame({
                               <div className="flex min-w-0 flex-1 flex-col justify-center">
                                 <div className="font-comic text-[8px] tracking-[0.16em] text-white/30">
                                   {selected
-                                    ? "✓ INSTALLED"
-                                    : "> INSTALL"}
+                                    ? "✓ SELECTED · ENTER TO REMOVE"
+                                    : "> SELECT"}
                                 </div>
 
                                 <div className="mt-0.5 font-comic-serif text-[12px] leading-tight text-white/90 sm:text-[13px]">
@@ -5374,15 +6208,23 @@ function PipelineGame({
                       transition
                       ${
                         prodUpgradesSelected.length >= 2
-                          ? "border-sky-100/40 bg-sky-100/[0.035] text-sky-50/80 hover:-translate-y-0.5 hover:border-sky-50/75 hover:bg-sky-100/[0.07] hover:text-white"
+                          ? prodStartFocused
+                            ? "border-emerald-100/90 bg-emerald-200/[0.10] text-white"
+                            : "border-sky-100/40 bg-sky-100/[0.035] text-sky-50/80 hover:-translate-y-0.5 hover:border-sky-50/75 hover:bg-sky-100/[0.07] hover:text-white"
                           : "cursor-not-allowed border-white/10 text-white/20"
                       }
                     `}
                   >
                     {prodUpgradesSelected.length >= 2
-                      ? "> open production"
+                      ? prodStartFocused
+                        ? "> OPEN PRODUCTION"
+                        : "open production"
                       : `> select ${2 - prodUpgradesSelected.length} more`}
                   </button>
+
+                  <div className="mt-1.5 font-comic text-[7px] tracking-[0.12em] text-white/20">
+                    ARROWS · MOVE &nbsp; ENTER · TOGGLE &nbsp; ↓ · OPEN PROD
+                  </div>
                 </>
               )}
             </div>
@@ -5677,7 +6519,7 @@ function PipelineGame({
               "
             >
               {upgradeChoices.map(
-                (upgrade) => (
+                (upgrade, index) => (
                   <button
                     key={upgrade.id}
                     type="button"
@@ -5686,11 +6528,10 @@ function PipelineGame({
                         upgrade.id
                       )
                     }
-                    className="
+                    className={`
                       group
                       min-h-[104px]
                       border
-                      border-white/15
                       bg-white/[0.01]
                       px-3.5
                       py-2.5
@@ -5704,7 +6545,12 @@ function PipelineGame({
                       sm:min-h-[110px]
                       sm:px-4
                       sm:py-3
-                    "
+                      ${
+                        index === upgradeKeyboardIndex
+                          ? "border-white/65 bg-white/[0.035]"
+                          : "border-white/15"
+                      }
+                    `}
                   >
                     <div className="flex h-full items-stretch gap-3.5">
                       <div className="flex w-[72px] shrink-0 items-center justify-center border-r border-white/[0.07] pr-3.5 sm:w-20">
