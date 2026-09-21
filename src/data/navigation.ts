@@ -234,7 +234,7 @@ export const navigation:
           "/minigames/ci-cd-defense",
 
         description:
-          "Fight your way through the build pipeline, squashing bugs before they reach production. Just make sure you save some integrity for whatever is waiting on the other side...",
+          "Fight your way through the CI/CD pipeline, shooting down bugs as new threats appear at each stage. Survive long enough to reach production — and whatever is waiting there.",
 
         subtitle:
           "interactive game",
@@ -252,7 +252,7 @@ export const navigation:
           "/minigames/packet-police",
 
         description:
-          "Patrol the network and intercept corrupted packets before they crash a protected service.",
+          "You're the corrupted packet. Tear through the network while firewall patrols hunt you down, using spoofing, fragmentation, encryption and TTL boosts to stay out of quarantine.",
 
         subtitle:
           "interactive game",
@@ -270,10 +270,10 @@ export const navigation:
           "/minigames/memory-leak",
 
         description:
-          "Your memory is disappearing one block at a time. Remember the pattern before everything gets garbage collected.",
+          "Memory is leaking. Build cleanup routines along the allocation path, upgrade your defences and stop objects from escaping before RAM hits 100%.",
 
         subtitle:
-          "tiny game · coming soon",
+          "interactive game",
       },
     ],
   },

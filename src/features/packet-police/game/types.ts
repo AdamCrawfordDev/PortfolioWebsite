@@ -1,146 +1,81 @@
-export type GameState =
-  | "idle"
-  | "running"
-  | "game-over"
+export type GameStatus = "ready" | "running" | "game-over"
 
-
-export type PortId =
-  | "http"
-  | "https"
-  | "ssh"
-  | "dns"
-
-
-export type PortState = {
-  id: PortId
-
-  name: string
-
-  port: number
-
-  health: number
-}
-
-
-export type PacketSize =
-  | "small"
-  | "normal"
-  | "large"
-
-
-export type LaneChangeDirection =
-  | -1
-  | 1
-
-
-export type Packet = {
-  id: number
-
-  /*
-   * Current horizontal route.
-   *
-   * While changing lanes this remains
-   * the route the packet came from until
-   * the vertical movement finishes.
-   */
-
-  lane: number
-
+export type Vec2 = {
   x: number
-
-  speed: number
-
-  corrupted: boolean
-
-  damage: number
-
-  size: PacketSize
-
-  seed: number
-
-
-  // ========================================
-  // ROUTING
-  // ========================================
-
-  nextJunctionIndex: number
-
-
-  /*
-   * Planned direction at the upcoming
-   * junction.
-   */
-
-  laneChangeDirection:
-    LaneChangeDirection | null
-
-
-  /*
-   * True while the route arrow should
-   * be displayed.
-   */
-
-  laneChangeWarning: boolean
-
-
-  // ========================================
-  // VERTICAL MOVEMENT
-  // ========================================
-
-  /*
-   * True while the packet is physically
-   * travelling along a vertical junction
-   * rail.
-   */
-
-  changingLane: boolean
-
-
-  /*
-   * Destination route.
-   */
-
-  targetLane:
-    number | null
-
-
-  /*
-   * Actual rendered Y position.
-   *
-   * Horizontal packets normally use
-   * LANE_Y[lane].
-   *
-   * During a route change this value is
-   * smoothly moved toward the target
-   * lane.
-   */
-
   y: number
 }
 
+export type PursuerKind =
+  | "patrol"
+  | "interceptor"
+  | "dpi"
 
-export type Player = {
-  lane: number
+export type PickupKind =
+  | "spoof"
+  | "fragment"
+  | "encrypt"
+  | "ttl"
 
-  column: number
+export type Player = Vec2 & {
+  vx: number
+  vy: number
+  angle: number
+  radius: number
+  integrity: number
+  maxIntegrity: number
+  invulnerable: number
+  spoofTimer: number
+  encryptTimer: number
+  ttlTimer: number
 }
 
+export type Pursuer = Vec2 & {
+  id: number
+  vx: number
+  vy: number
+  angle: number
+  radius: number
+  kind: PursuerKind
+  health: number
+  maxHealth: number
+  hitFlash: number
+}
 
-export type GameStats = {
-  score: number
+export type Firewall = {
+  id: number
+  x: number
+  y: number
+  width: number
+  height: number
+  horizontal: boolean
+  ttl: number
+}
 
-  intercepted: number
+export type Pickup = Vec2 & {
+  id: number
+  kind: PickupKind
+  radius: number
+  pulse: number
+}
 
-  falsePositives: number
+export type Decoy = Vec2 & {
+  id: number
+  vx: number
+  vy: number
+  ttl: number
+}
 
-  leaked: number
+export type Particle = Vec2 & {
+  id: number
+  vx: number
+  vy: number
+  life: number
+  maxLife: number
+  size: number
+}
 
-  streak: number
-
-  ports: PortState[]
-
-  gameState: GameState
-
-  failedPort:
-    PortId | null
+export type FloatingText = Vec2 & {
+  id: number
+  text: string
+  life: number
 }
