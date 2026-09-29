@@ -17,11 +17,29 @@ export default function ProjectReadme({
 }: ProjectReadmeProps) {
   return (
     <div className="flex h-full min-h-0 flex-col">
-
-      <div className="mb-4 flex shrink-0 items-center justify-between gap-4 border-b border-white/10 pb-2.5">
-
-        <div className="min-w-0 font-comic text-[10px] tracking-[0.06em] text-white/30">
-
+      <div
+        className="
+          mb-3.5
+          flex
+          shrink-0
+          items-center
+          justify-between
+          gap-4
+          border-b
+          border-white/10
+          pb-2
+        "
+      >
+        <div
+          className="
+            min-w-0
+            truncate
+            font-comic
+            text-[10px]
+            tracking-[0.06em]
+            text-white/30
+          "
+        >
           <span className="text-white/18">
             ~/portfolio/projects/
           </span>
@@ -29,9 +47,7 @@ export default function ProjectReadme({
           <span className="text-white/45">
             {projectId}/README.md
           </span>
-
         </div>
-
 
         {onBack && (
           <button
@@ -42,26 +58,28 @@ export default function ProjectReadme({
               font-comic
               text-[10px]
               tracking-[0.06em]
-              text-white/35
-              transition-all
+              text-white/40
+              transition-[transform,color]
               duration-200
               hover:-translate-x-1
               hover:text-white
+              focus-visible:outline
+              focus-visible:outline-1
+              focus-visible:outline-offset-2
+              focus-visible:outline-white/50
             "
           >
             ← projects
           </button>
         )}
-
       </div>
-
 
       <div
         className="
           min-h-0
           flex-1
           overflow-y-auto
-          pr-2
+          pr-1.5
 
           [&::-webkit-scrollbar]:w-1
           [&::-webkit-scrollbar-thumb]:rounded-full
@@ -69,13 +87,10 @@ export default function ProjectReadme({
           [&::-webkit-scrollbar-track]:bg-transparent
         "
       >
-
-        <div className="mx-auto w-full max-w-4xl pb-8">
+        <div className="mx-auto w-full max-w-4xl pb-6">
           {children}
         </div>
-
       </div>
-
     </div>
   )
 }

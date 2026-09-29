@@ -16,23 +16,20 @@ export default function ProjectSection({
   children,
 }: ProjectSectionProps) {
   return (
-    <section className="py-2.5">
-
+    <section className="py-2">
       {eyebrow && (
-        <div className="mb-1.5 font-comic text-[9px] uppercase tracking-[0.16em] text-white/25">
+        <div className="mb-1 font-comic text-[9px] uppercase tracking-[0.16em] text-white/25">
           {eyebrow}
         </div>
       )}
 
-
-      <h2 className="font-comic-serif text-xl text-white md:text-2xl">
+      <h2 className="font-comic-serif text-xl leading-tight text-white md:text-2xl">
         {title}
       </h2>
 
-
       <div
         className="
-          mt-3
+          mt-2
           max-w-3xl
           font-comic
           text-sm
@@ -42,7 +39,6 @@ export default function ProjectSection({
       >
         {children}
       </div>
-
     </section>
   )
 }

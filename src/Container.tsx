@@ -699,42 +699,67 @@ function Container() {
   // ========================================
 
   useEffect(() => {
+
     if (!showHireMe) {
+
       return
+
     }
 
     function updateHireMeTime() {
+
       const elapsedMilliseconds =
+
         Date.now() -
+
         portfolioStartTime.current
 
       const elapsedSeconds =
+
         Math.max(
+
           1,
+
           Math.floor(
+
             elapsedMilliseconds /
+
               1000
+
           )
+
         )
 
       setHireMeTime(
+
         elapsedSeconds
+
       )
+
     }
 
     updateHireMeTime()
 
     const intervalId =
+
       window.setInterval(
+
         updateHireMeTime,
+
         1000
+
       )
 
     return () => {
+
       window.clearInterval(
+
         intervalId
+
       )
+
     }
+
   }, [showHireMe])
 
   // ========================================
@@ -1342,30 +1367,51 @@ function Container() {
               <div
 
                 className="
+
                 flex
+
                 min-h-[450px]
+
                 w-full
+
                 items-center
+
                 justify-center
+
                 px-3
+
                 py-12
 
                 sm:px-6
+
                 md:px-10
+
                 lg:px-14
+
               "
 
               >
+
               <div
+
                 className="
+
                   flex
+
                   w-full
+
                   max-w-3xl
+
                   flex-col
+
                   items-center
+
                   justify-center
+
                   text-center
+
                 "
+
               >
 
                 <p
@@ -1373,7 +1419,9 @@ function Container() {
                   className="
 
                     w-full
+
                     max-w-2xl
+
                     px-2
 
                     font-comic
@@ -1385,6 +1433,7 @@ function Container() {
                     text-white/45
 
                     sm:px-4
+
                     md:text-base
 
                   "
@@ -1557,31 +1606,7 @@ function Container() {
 
                   <>
 
-                    <div className="mb-5 md:mb-7">
-
-                      <p
-
-                        className="
-
-                          mt-1
-
-                          font-comic
-
-                          text-sm
-
-                          text-white/60
-
-                          md:text-base
-
-                        "
-
-                      >
-
-                        Select a directory to continue.
-
-                      </p>
-
-                    </div>
+                    
 
                     <div className="flex-1">
 

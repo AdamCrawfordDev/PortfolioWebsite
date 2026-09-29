@@ -28,7 +28,7 @@ export default function SpotifyRekordboxProject({
         links={[
           {
             label: "GitHub",
-            href: "YOUR_GITHUB_URL",
+            href: "https://github.com/AdamCrawfordDev/DjSoftware",
           },
         ]}
       />

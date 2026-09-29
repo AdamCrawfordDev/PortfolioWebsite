@@ -14,7 +14,7 @@ export default function ProjectImageGrid({
   return (
     <div
       className={`
-        my-4
+        my-3.5
         grid
         gap-3
         ${
@@ -24,7 +24,6 @@ export default function ProjectImageGrid({
         }
       `}
     >
-
       {images.map(
         (image) => (
           <figure
@@ -35,22 +34,24 @@ export default function ProjectImageGrid({
                 : ""
             }
           >
-
             <div
               className="
                 h-full
                 overflow-hidden
                 rounded-[8px_18px_10px_22px]
                 border
-                border-white/15
-                bg-white/[0.025]
+                border-white/12
+                bg-white/[0.02]
                 p-1
               "
             >
               <img
                 src={image.src}
                 alt={image.alt}
+                loading="lazy"
+                decoding="async"
                 className="
+                  block
                   h-full
                   w-full
                   rounded-[6px_15px_8px_18px]
@@ -59,17 +60,14 @@ export default function ProjectImageGrid({
               />
             </div>
 
-
             {image.caption && (
-              <figcaption className="mt-1.5 pl-2 font-comic text-[10px] text-white/28">
+              <figcaption className="mt-1.5 px-2 font-comic text-[10px] leading-4 text-white/30">
                 {image.caption}
               </figcaption>
             )}
-
           </figure>
         )
       )}
-
     </div>
   )
 }

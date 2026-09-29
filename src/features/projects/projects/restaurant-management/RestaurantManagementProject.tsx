@@ -1,12 +1,16 @@
 import ProjectReadme from "../../components/ProjectReadme"
 import ProjectHeader from "../../components/ProjectHeader"
-import ProjectSection from "../../components/ProjectSection"
 import ProjectFeature from "../../components/ProjectFeature"
+import ProjectSection from "../../components/ProjectSection"
 import ProjectStack from "../../components/ProjectStack"
+
+import oaxacaImage from "../../assets/restaurant-management/oaxaca.webp"
+
 
 type RestaurantManagementProjectProps = {
   onBack?: () => void
 }
+
 
 export default function RestaurantManagementProject({
   onBack,
@@ -26,23 +30,28 @@ export default function RestaurantManagementProject({
           "Stripe",
         ]}
         links={[
-          {
-            label: "GitHub",
-            href: "YOUR_GITHUB_URL",
-          },
-        ]}
+  {
+    label: "GitHub",
+    href: "",
+    unavailableMessage:
+      "This was a university team project, so the source repository isn't publicly available.",
+  },
+]}
       />
 
-      <ProjectSection title="Running a restaurant in real time">
+
+      <ProjectFeature
+        title="Running a restaurant in real time"
+        image={oaxacaImage}
+        imageAlt="Restaurant management system application interface"
+        mediaSide="right"
+      >
         The system brings ordering, payments and restaurant
         operations together in one application. Changes made
         by customers or staff can be reflected throughout the
         system without relying on constant manual refreshes.
-      </ProjectSection>
+      </ProjectFeature>
 
-      {/*
-        Put a wide screenshot of the application here.
-      */}
 
       <ProjectFeature title="Real-time communication">
         WebSockets were used where different parts of the
@@ -51,6 +60,7 @@ export default function RestaurantManagementProject({
         across the application.
       </ProjectFeature>
 
+
       <ProjectSection title="Building it as a team">
         The project was developed by a seven-person team using
         Scrum. I worked as Scrum Master while also contributing
@@ -58,12 +68,6 @@ export default function RestaurantManagementProject({
         coordinating work across the team.
       </ProjectSection>
 
-      {/*
-        An image grid could show:
-        - customer ordering
-        - staff interface
-        - payment flow
-      */}
 
       <ProjectStack
         groups={[
