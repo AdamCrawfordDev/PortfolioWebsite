@@ -3347,16 +3347,11 @@ export default function MemoryGame() {
     <div className="w-full font-comic text-white">
 
       <div
-        className="
-          relative
-          mx-auto
-          w-fit
-          max-w-full
-          overflow-hidden
-          border
-          border-white/5
-          bg-[#030615]
-        "
+        className="relative mx-auto overflow-hidden"
+        style={{
+          width: `min(100%, calc((100dvh - 220px) * ${GAME_WIDTH / GAME_HEIGHT}))`,
+          aspectRatio: `${GAME_WIDTH} / ${GAME_HEIGHT}`,
+        }}
       >
         <canvas
           ref={canvasRef}
@@ -3368,21 +3363,20 @@ export default function MemoryGame() {
             mouseRef.current.inside = false
           }}
           className="
-            mx-auto
+            absolute
+            inset-0
             block
-            h-auto
-            max-h-[min(62vh,540px)]
-            w-auto
-            max-w-full
+            h-full
+            w-full
             cursor-crosshair
-            object-contain
-            [@media(max-height:820px)]:max-h-[470px]
-            [@media(max-height:760px)]:max-h-[430px]
+            border
+            border-white/15
+            bg-navy-dark
           "
         />
 
         {/* ENDLESS SURVIVAL SCORE */}
-        {state.endless && (
+        {state.status !== "ready" && state.endless && (
           <div
             className="
               pointer-events-none
@@ -3409,6 +3403,7 @@ export default function MemoryGame() {
         )}
 
         {/* QUICK BUY / CONTEXT INFO */}
+        {state.status !== "ready" && (
         <div
           className="
             pointer-events-none
@@ -3552,9 +3547,10 @@ export default function MemoryGame() {
             </div>
           )}
         </div>
+        )}
 
 {/* SELECTED TOWER ACTIONS - ABOVE THE WAVE BUTTON */}
-        {selectedTower && (
+        {state.status !== "ready" && selectedTower && (
           <div
             className="
               absolute
@@ -3654,6 +3650,7 @@ export default function MemoryGame() {
         )}
 
         {/* WAVE / SPEED CONTROL - ALWAYS BOTTOM RIGHT */}
+        {state.status !== "ready" && (
         <button
           type="button"
           onClick={() => {
@@ -3737,6 +3734,83 @@ export default function MemoryGame() {
                   : `START WAVE ${state.wave + 1} →`}
           </div>
         </button>
+        )}
+
+        {/* ========================================
+            START SCREEN
+        ======================================== */}
+
+        {state.status === "ready" && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-navy-dark/80 px-5 backdrop-blur-[1px]">
+            <div className="w-full max-w-md border border-white/15 bg-navy-dark/95 p-6 text-center shadow-[8px_8px_0_rgba(255,255,255,0.04)]">
+              <div className="text-[10px] tracking-[0.2em] text-white/25">
+                HEAP MONITOR OFFLINE
+              </div>
+
+              <div className="mt-2 font-comic-serif text-3xl text-white">
+                Initialise heap?
+              </div>
+
+              <p className="mx-auto mt-3 max-w-sm text-xs leading-5 text-white/40">
+                Memory is escaping. Build cleanup routines beside the
+                allocation path, collect objects before they leak and keep
+                RAM below 100%.
+              </p>
+
+              <div className="mx-auto mt-5 grid max-w-xs grid-cols-2 gap-x-5 gap-y-2 border-y border-white/[0.06] py-4 text-left text-[10px] tracking-[0.08em]">
+                <span className="text-white/25">
+                  PLACE
+                </span>
+                <span className="text-right text-white/55">
+                  CLICK
+                </span>
+
+                <span className="text-white/25">
+                  RESOURCE
+                </span>
+                <span className="text-right text-white/55">
+                  CPU
+                </span>
+
+                <span className="text-white/25">
+                  FAILURE
+                </span>
+                <span className="text-right text-red-200/60">
+                  RAM 100%
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  gameSpeedRef.current = 1
+                  setGameSpeed(1)
+                  startNextWave()
+                }}
+                className="
+                  mt-6
+                  border
+                  border-white/70
+                  bg-white/[0.08]
+                  px-5
+                  py-2
+                  text-sm
+                  text-white
+                  transition
+                  hover:-translate-y-0.5
+                  hover:border-white
+                  hover:bg-white/[0.12]
+                "
+              >
+                &gt; initialise heap
+              </button>
+
+              <div className="mt-2 text-[9px] tracking-[0.1em] text-white/20">
+                CLICK · BEGIN ALLOCATION
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-[11px] text-white/25 [@media(max-height:760px)]:hidden">

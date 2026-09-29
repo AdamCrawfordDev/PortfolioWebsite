@@ -2103,7 +2103,7 @@ function NetworkGame() {
         y:
           point.y,
 
-        radius: 27,
+        radius: 32,
 
         pulse: 0,
       })
@@ -4571,12 +4571,12 @@ function NetworkGame() {
 
   return (
     <div
-      className="w-full select-none text-white"
+      className="flex w-full select-none flex-col text-white"
       style={{
         fontFamily: FONT,
       }}
     >
-      <div className="mb-5">
+      <div className="mb-3 shrink-0">
         <div className="text-xs text-white/30">
           /minigames/packet-police.exe
         </div>
@@ -4590,7 +4590,7 @@ function NetworkGame() {
           NETWORK STATUS
       ======================================== */}
 
-      <div className="mb-2">
+      <div className="mb-2 shrink-0">
         <div className="mb-1 flex items-end justify-between gap-4">
           <div className="flex flex-wrap gap-x-5 gap-y-1 text-[9px] tracking-[0.12em] text-white/25">
             <span>
@@ -4678,7 +4678,7 @@ function NetworkGame() {
           height={
             GAME_HEIGHT
           }
-          className="block h-auto w-full"
+          className="block h-auto max-h-[62vh] w-full object-contain"
           aria-label="Packet Police arcade chase game"
         />
 
@@ -4811,14 +4811,14 @@ function NetworkGame() {
 
               <div className="mt-6 flex flex-wrap justify-center gap-2">
                 <div className="border border-red-200/20 px-4 py-2 text-xs text-red-100/70">
-                  score&nbsp;
+                  score{" "}
                   <span className="text-red-100">
                     {hud.score.toLocaleString()}
                   </span>
                 </div>
 
                 <div className="border border-red-200/20 px-4 py-2 text-xs text-red-100/70">
-                  uptime&nbsp;
+                  uptime{" "}
                   <span className="text-red-100">
                     {hud.survived.toFixed(
                       1
@@ -4867,7 +4867,7 @@ function NetworkGame() {
           CONTROLS / POWER-UP KEY
       ======================================== */}
 
-      <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-[11px] text-white/25">
+      <div className="mt-2 flex shrink-0 flex-wrap gap-x-5 gap-y-1 text-[11px] text-white/25">
         <span>
           W / S · ACCELERATE
         </span>
@@ -4881,7 +4881,7 @@ function NetworkGame() {
         </span>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 border-t border-white/[0.06] pt-3 text-[10px]">
+      <div className="mt-2 flex shrink-0 flex-wrap gap-x-5 gap-y-2 border-t border-white/[0.06] pt-2 text-[10px]">
         <span className="text-blue-300/55">
           S · SPOOF
         </span>

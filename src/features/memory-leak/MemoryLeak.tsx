@@ -1,39 +1,37 @@
 import MemoryGame from "./game/MemoryGame"
 
-
 export default function MemoryLeak() {
   return (
-    <div className="w-full">
-
-      <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
-
-        <div>
-
-          <div className="font-comic text-[10px] uppercase tracking-[0.18em] text-white/25">
-            process://heap
-          </div>
-
-          <h2 className="mt-1 font-comic-serif text-2xl text-white">
-            Memory Leak
-          </h2>
-
-          <p className="mt-1 max-w-2xl font-comic text-xs leading-5 text-white/40">
-            Memory is escaping. Build cleanup routines beside the allocation path,
-            collect objects before they leak and keep RAM below 100%.
-          </p>
-
+    <div className="font-comic">
+      <div className="mb-5">
+        <div className="text-xs text-white/30">
+          /minigames/memory-leak.exe
         </div>
 
-
-        <div className="font-comic text-[10px] text-white/25">
-          tower defence · definitely not how malloc works
-        </div>
-
+        <h2 className="mt-2 font-comic-serif text-3xl text-white">
+          Memory Leak
+        </h2>
       </div>
 
+      <div className="mb-2">
+        <div className="mb-1 flex justify-between text-[9px] tracking-[0.12em] text-white/20">
+          <span>
+            PROCESS://HEAP
+          </span>
 
-      <MemoryGame />
+          <span>
+            TOWER DEFENCE · DEFINITELY NOT HOW MALLOC WORKS
+          </span>
+        </div>
 
+        <div className="h-1 overflow-hidden bg-white/5">
+          <div className="h-full w-full bg-white/45" />
+        </div>
+      </div>
+
+      <div className="relative overflow-hidden border border-white/5">
+        <MemoryGame />
+      </div>
     </div>
   )
 }
